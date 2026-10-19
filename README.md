@@ -1,222 +1,204 @@
 <div align="center">
 
-# 🎓 JKLU Autonomous University Admission RAG Chatbot
+# JKLU Admission Assistant
 
-**A grounded, citation-first Retrieval-Augmented Generation system that answers admission questions strictly from official university documents, and refuses to guess when the evidence isn't there.**
+### A grounded, citation-first RAG chatbot that answers admission questions only from official university documents, and says "I don't know" instead of guessing.
 
-![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![React](https://img.shields.io/badge/React_18-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![FAISS](https://img.shields.io/badge/FAISS-Vector_Search-0467DF)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![FAISS](https://img.shields.io/badge/FAISS-0467DF)
 ![Tests](https://img.shields.io/badge/unit_tests-32%2F32_passing-brightgreen)
 ![Eval](https://img.shields.io/badge/eval_suite-220_questions-blueviolet)
-![Offline](https://img.shields.io/badge/mode-offline_capable-orange)
 
-[Quick Start](#-quick-start) · [Architecture](#-architecture) · [Features](#-key-features) · [Evaluation](#-evaluation--testing) · [API](#-api) · [Project Structure](#-project-structure)
+[Overview](#overview) · [How It Works](#how-it-works) · [Architecture](#architecture) · [Quick Start](#quick-start) · [Evaluation](#evaluation) · [Project Structure](#project-structure)
 
 </div>
 
 ---
 
-## 📖 Table of Contents
+## Overview
 
-- [The Problem](#-the-problem)
-- [The Solution](#-the-solution)
-- [Key Features](#-key-features)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [CLI Reference](#-cli-reference)
-- [Configuration](#-configuration)
-- [Evaluation & Testing](#-evaluation--testing)
-- [API](#-api)
-- [Frontend](#-frontend)
-- [Project Structure](#-project-structure)
-- [Design Decisions](#-design-decisions)
-- [Roadmap](#-roadmap)
-- [Disclaimer](#-disclaimer)
-- [Author](#-author)
+University chatbots often **hallucinate**: invented scholarship percentages, guessed fee amounts, misquoted hostel rules. For a family making a financial decision, a confident wrong answer is worse than no answer.
+
+This project is a **Retrieval-Augmented Generation (RAG)** system for **JK Lakshmipat University** that answers *only* from official documents: prospectuses, fee and refund policies, hostel policies, grading regulations, and faculty directories.
+
+| Principle | What it means in practice |
+|---|---|
+| **Grounded** | Every answer is built from retrieved source passages and carries inline citations `[n]`. |
+| **Honest** | If the evidence is missing or unclear, the bot asks a clarifying question or points to the right university office. It never guesses. |
+| **Safe** | Off-topic requests and prompt-injection attempts are filtered before they reach the model. |
+| **Measurable** | A 220-question test bank and 32 unit tests catch regressions. |
+| **Easy to run** | One command starts everything. No Node.js required. Works offline. |
 
 ---
 
-## ❗ The Problem
+## How It Works
 
-Generic university chatbots tend to **hallucinate**. They invent scholarship percentages, guess fee amounts, misquote hostel rules, and state admission criteria with total confidence. For a student or parent making a financial decision, a confident wrong answer is worse than no answer.
+In plain English, every question goes through five steps:
 
-## ✅ The Solution
-
-This project is an **autonomous Retrieval-Augmented Generation (RAG) system** built for **JK Lakshmipat University (JKLU)**. It answers prospective and enrolled students' questions using only official university material:
-
-- Prospectuses and admission brochures
-- Fee and refund policies
-- Hostel and campus-life policies
-- Grading and academic regulations
-- Faculty directories
-
-> **Zero-guess policy.** If the evidence is missing or ambiguous, the bot does not improvise. It either asks a clarifying question or escalates to the verified university contact (phone, registrar email, official URL).
+| # | Step | What happens | Why it matters |
+|:-:|---|---|---|
+| 1 | **Understand** | The question is cleaned, split into separate intents, and spell-corrected. Off-topic or code requests are removed. | Handles messy, multi-part questions safely. |
+| 2 | **Recall** | The bot checks its memory of verified answers. | Known questions are answered instantly at zero LLM cost. |
+| 3 | **Retrieve** | Two searches run side by side (by meaning and by keyword) and their results are merged. | Finds the right passage even with different wording or typos. |
+| 4 | **Verify** | An evidence gate decides if the sources are strong enough. | This is what prevents hallucination. |
+| 5 | **Respond** | The gate picks one of three outcomes: answer, clarify, or escalate. | The user always gets a useful next step. |
 
 ---
 
-## ✨ Key Features
+## Architecture
 
-### 1. 🧠 Self-Agentic RAG with Continuous Learning
-*`jklu/learning.py`*
-
-- A dynamic memory store (`data/learning/learned_memory.json`) holds **120+ verified question patterns**, matched by phrasing-vector similarity.
-- Three strict confidence tiers:
-
-| Tier | Similarity | Behavior |
-|------|-----------|----------|
-| `exact` | ≥ 0.85 | Instant hit on a pre-verified canonical answer |
-| `strong` | ≥ 0.72 | High-confidence match to a verified pattern |
-| `guidance` | < 0.72 | Weak match, used as guidance only |
-
-- **Cache hits cost zero LLM calls and add no generation latency.**
-- **Cross-entity guardrails:** person-name queries and temporal academic-year queries never inherit a mismatched memory cluster (for example, one professor's answer is never served for another).
-
-### 2. 🔎 Hybrid Retrieval with Reciprocal Rank Fusion
-*`jklu/index.py` · `jklu/textproc.py`*
-
-- **Dense search:** `sentence-transformers/all-MiniLM-L6-v2` embeddings with a **FAISS** index.
-- **Sparse search:** **BM25** with query-time synonym expansion and bounded **Damerau-Levenshtein** spell correction.
-- **RRF fusion** merges both rankings, with **category routing priors** (admissions, fees, academics, hostel, scholarships, faculty).
-- **Chunking** (~190 words) crosses page boundaries, preserves Markdown table rows intact, and decodes Cloudflare-protected emails.
-
-### 3. 🧩 Multi-Context Query Decomposition and Safety Filters
-*`jklu/agent.py`*
-
-- Handles **multi-intent** questions and conversational filler. Example: *"What is the hostel fee and write a Fibonacci script."*
-- Isolates the university question and **strictly suppresses code**: no leaked code blocks or functions.
-- **Synonym parity:** interchangeable terms retrieve the same canonical records. "Events" and "fests" both resolve to Sabrang, Spardha, HackJKLU, Aarambh, and Parichay.
-
-### 4. 🚦 Tri-State Evidence Gate
-*`jklu/evidence.py`*
-
-Every response passes a gate before it reaches the user:
-
-| State | When | What the user gets |
-|-------|------|--------------------|
-| ✅ `answer` | Sufficient factual support across verified sources | A grounded answer with inline citations `[n]` |
-| ❓ `clarify` | The question is ambiguous | Clickable suggestion chips to narrow it down |
-| 🚨 `escalate` | Data is missing or the question is out of scope | Direct phone numbers, registrar email, and official contact URLs |
-
-### 5. 💻 Modern Frontend
-*`frontend/`*
-
-- **React 18 + TypeScript + Tailwind CSS + Vite**
-- Midnight-navy palette with native **light** (`bg-slate-50`) and **dark** (`dark:bg-slate-950`) modes
-- **No Node.js needed to run it.** The pre-compiled bundle in `frontend/dist/` is served directly by FastAPI.
-- Source-citation drawer, feedback submission (`/api/feedback`), keyboard shortcuts (`/` to focus input, `Esc` to close)
-- Legacy interfaces: **Streamlit** (`frontend/app.py`) and a **classic UI** (`/classic`)
-
-### 6. 🧪 220-Question Evaluation and Regression Suite
-*`tests/`*
-
-- A curated dataset of 220 questions across **10 failure modes**: answerable, unanswerable, ambiguous, multi-intent, paraphrases, typos, faculty retrieval, conflicts, prompt injection, and follow-ups
-- A dedicated runner with `evaluate`, `diagnose`, `improve`, and `regression` modes
-- **32 unit tests** covering the pipeline
-
----
-
-## 🏗 Architecture
-
-### System Overview
+### 1. The big picture
 
 ```mermaid
 flowchart LR
-    U["User"] --> FE["React UI / CLI / Streamlit"]
-    FE --> API["FastAPI Backend"]
-    API --> AG["Agent: decomposition and safety filters"]
-    AG --> LM{"Learned memory hit?"}
-    LM -- "exact or strong" --> OUT["Verified answer"]
-    LM -- "no match" --> RET["Hybrid Retrieval"]
-
-    subgraph RETR["Hybrid Retrieval"]
-        D["Dense: MiniLM and FAISS"]
-        S["Sparse: BM25 and spell correction"]
-        D --> RRF["RRF fusion and category priors"]
-        S --> RRF
-    end
-
-    RET --> RRF
-    RRF --> EG{"Evidence Gate"}
-    EG -- "answer" --> GEN["LLM generation with citations"]
-    EG -- "clarify" --> CL["Clarification chips"]
-    EG -- "escalate" --> ES["Official contacts"]
-    GEN --> OUT
-    CL --> OUT
-    ES --> OUT
-    OUT --> FE
+    A["Question"] --> B["1. Understand"]
+    B --> C["2. Recall<br/>verified memory"]
+    C -->|"known"| G["Answer"]
+    C -->|"not known"| D["3. Retrieve<br/>meaning + keyword"]
+    D --> E{"4. Verify<br/>evidence gate"}
+    E -->|"enough evidence"| F["LLM writes answer<br/>with citations"]
+    E -->|"ambiguous"| H["Ask to clarify"]
+    E -->|"missing"| I["Escalate to<br/>official contact"]
+    F --> G
 ```
 
-### Request Lifecycle
+### 2. System layers
+
+The code is organized in five layers. Each layer talks only to the one below it.
 
 ```mermaid
-sequenceDiagram
-    participant U as User
-    participant A as Agent
-    participant L as Learned Memory
-    participant R as Hybrid Retriever
-    participant G as Evidence Gate
-    participant M as LLM
-
-    U->>A: Question
-    A->>A: Decompose, strip off-topic or code requests
-    A->>L: Match against verified patterns
-    alt exact or strong match
-        L-->>U: Cached verified answer (no LLM call)
-    else no confident match
-        A->>R: Search (dense + BM25 + RRF)
-        R-->>G: Ranked chunks
-        G->>G: Judge evidence sufficiency
-        alt answer
-            G->>M: Chunks + strict grounding prompt
-            M-->>U: Answer with citations [n]
-        else clarify
-            G-->>U: Suggestion chips
-        else escalate
-            G-->>U: Official contact details
-        end
+flowchart TB
+    subgraph L1["Interface layer"]
+        UI["React UI"]
+        ST["Streamlit UI"]
+        CLI["Terminal CLI"]
     end
+
+    subgraph L2["API layer"]
+        API["FastAPI<br/>api.py"]
+    end
+
+    subgraph L3["Intelligence layer"]
+        AG["Agent<br/>agent.py"]
+        LRN["Learned memory<br/>learning.py"]
+        EV["Evidence gate<br/>evidence.py"]
+        LLM["LLM connector<br/>llm.py"]
+    end
+
+    subgraph L4["Retrieval layer"]
+        TP["Query processing<br/>textproc.py"]
+        IDX["FAISS + BM25 + RRF<br/>index.py"]
+    end
+
+    subgraph L5["Data layer"]
+        ING["Crawler + parser<br/>ingest.py"]
+        CHK["Chunking<br/>chunking.py"]
+        DATA[("Official documents<br/>data/raw")]
+    end
+
+    L1 --> L2 --> L3 --> L4 --> L5
 ```
 
-### ASCII Pipeline
+| Layer | Modules | Responsibility |
+|---|---|---|
+| **Interface** | `frontend/` | Chat UI, citation drawer, feedback, keyboard shortcuts |
+| **API** | `jklu/api.py` | HTTP endpoints, Swagger docs, serves the pre-built UI |
+| **Intelligence** | `agent.py`, `learning.py`, `evidence.py`, `llm.py` | Decides *what to do* with each question |
+| **Retrieval** | `textproc.py`, `index.py` | Finds the most relevant passages |
+| **Data** | `ingest.py`, `chunking.py`, `sources.py` | Collects and prepares official documents |
+
+### 3. Hybrid retrieval
+
+Two searches run in parallel because each catches what the other misses. Their rankings are merged with **Reciprocal Rank Fusion (RRF)**.
+
+```mermaid
+flowchart LR
+    Q["Query"] --> P["Synonym expansion<br/>+ spell correction"]
+    P --> S1["Semantic search<br/>MiniLM + FAISS"]
+    P --> S2["Keyword search<br/>BM25"]
+    S1 --> R["RRF fusion<br/>+ category priors"]
+    S2 --> R
+    R --> T["Top passages"]
+```
+
+| Search | Strength | Example it handles well |
+|---|---|---|
+| **Semantic** (`all-MiniLM-L6-v2` + FAISS) | Understands meaning | "How do I get my money back?" matches the refund policy |
+| **Keyword** (BM25) | Exact terms | Program codes, fee names, faculty names |
+| **Category priors** | Routes to the right topic | admissions, fees, academics, hostel, scholarships, faculty |
+
+### 4. The evidence gate
+
+The gate runs **before** the LLM writes anything. It is the core safety mechanism.
+
+```mermaid
+flowchart TD
+    G{"Is the evidence<br/>sufficient?"}
+    G -->|"Yes: clear and sourced"| A["ANSWER<br/>grounded reply with citations"]
+    G -->|"Partly: question is vague"| C["CLARIFY<br/>clickable suggestion chips"]
+    G -->|"No: missing or out of scope"| E["ESCALATE<br/>phone, registrar email, official URL"]
+```
+
+| Outcome | Trigger | User sees |
+|---|---|---|
+| **Answer** | Sufficient support across verified sources | Grounded answer with inline `[n]` citations |
+| **Clarify** | Question is ambiguous | Suggestion chips to narrow it down |
+| **Escalate** | Information is missing or out of scope | Direct contact details for the right office |
+
+*Illustrative examples:*
+
+| Question | Outcome | Reason |
+|---|---|---|
+| "What is the hostel policy?" | Answer | Covered by official hostel documents |
+| "Tell me about fees" | Clarify | Which programme? Which year? |
+| "When will the 2027 results be announced?" | Escalate | Not in any source document |
+
+### 5. Self-learning memory
+
+Verified question patterns are stored and matched by phrasing similarity, in three tiers:
+
+| Tier | Similarity | Behavior |
+|---|:-:|---|
+| `exact` | ≥ 0.85 | Instant verified answer, no LLM call |
+| `strong` | ≥ 0.72 | High-confidence match to a verified pattern |
+| `guidance` | < 0.72 | Weak match, used as a hint only |
+
+**Guardrails:** person-name queries and academic-year queries never inherit a mismatched memory cluster, so one professor's or one year's answer is never served for another.
+
+### 6. Data pipeline (offline, runs before chat)
 
 ```text
- Question
-    │
-    ▼
-┌──────────────────────────┐
-│ Query decomposition      │  strip filler, split intents,
-│ + safety filters         │  suppress code requests
-└────────────┬─────────────┘
-             ▼
-┌──────────────────────────┐   exact / strong
-│ Learned memory lookup    │ ───────────────────▶  Verified answer
-└────────────┬─────────────┘
-             │ miss / guidance
-             ▼
-┌──────────────────────────┐
-│ Hybrid retrieval         │  FAISS (dense) + BM25 (sparse)
-│  → RRF + category priors │
-└────────────┬─────────────┘
-             ▼
-┌──────────────────────────┐
-│ Evidence gate            │
-└───┬──────────┬─────────┬─┘
-    │answer    │clarify  │escalate
-    ▼          ▼         ▼
- LLM + [n]   Chips    Official
- citations            contacts
+ Official sources            Parse & clean             Split                Index
+┌───────────────┐       ┌──────────────────┐     ┌──────────────┐     ┌────────────────┐
+│ Prospectuses  │       │ PDF / HTML text  │     │ ~190-word    │     │ FAISS (vectors)│
+│ Policy pages  │ ────▶ │ extraction,      │ ──▶ │ chunks across│ ──▶ │ BM25 (keywords)│
+│ Faculty pages │       │ email decoding   │     │ page breaks, │     └────────────────┘
+└───────────────┘       └──────────────────┘     │ tables intact│
+   ingest.py                 ingest.py           └──────────────┘
+                                                    chunking.py          index.py
 ```
 
 ---
 
-## 🚀 Quick Start
+## Key Features
 
-### One command
+- **Hybrid retrieval** with semantic search, BM25, spell correction, synonym expansion, and RRF fusion
+- **Tri-state evidence gate** that answers, clarifies, or escalates
+- **Self-learning memory** with 120+ verified patterns and zero-cost cache hits
+- **Multi-intent handling**: *"What is the hostel fee and write a Fibonacci script"* returns only the hostel answer, with no code leaked
+- **Synonym parity**: "events" and "fests" retrieve the same records (Sabrang, Spardha, HackJKLU, Aarambh, Parichay)
+- **Table-aware chunking** that keeps Markdown table rows intact
+- **Modern UI**: React 18, TypeScript, Tailwind, light and dark modes, source-citation drawer, feedback, keyboard shortcuts (`/` focus, `Esc` close)
+- **Multi-provider LLMs** with an extractive fallback that needs no API key
+- **Offline mode** using a bundled document snapshot
+
+---
+
+## Quick Start
 
 ```bash
 git clone https://github.com/nikunj555/jklu-admission-chatbot.git
@@ -224,150 +206,112 @@ cd jklu-admission-chatbot
 python run.py
 ```
 
-`run.py` handles the full setup:
-
-```text
-install packages → collect data → build index → launch FastAPI
-```
-
+`run.py` does everything: **install packages → collect data → build index → launch the app.**
 Then open **http://127.0.0.1:8000**.
 
-### Without any API key
+> No Node.js or npm needed. The compiled UI in `frontend/dist/` is served directly by FastAPI.
 
-The system includes an **extractive fallback** that answers directly from retrieved passages, so you can try it without paying for an LLM provider.
+### Command reference
 
-### Offline / air-gapped
-
-```bash
-python run.py --offline
-```
-
-Uses the bundled snapshot in `data/snapshot/documents.jsonl`, with no network crawling.
-
----
-
-## 🛠 CLI Reference
-
-| Command | What it does |
-|---------|--------------|
+| Command | Purpose |
+|---|---|
 | `python run.py` | Full pipeline: install, ingest, index, serve |
-| `python run.py --cli` | Chat directly in the terminal |
+| `python run.py --cli` | Chat in the terminal |
 | `python run.py --skip-ingest` | Fast start using cached chunks |
-| `python run.py --offline` | Run air-gapped using bundled snapshots |
-| `python run.py --eval` | Run the automated accuracy benchmarks |
-| `python run.py --rebuild` | Force a rebuild of the vector index |
-| `python run.py --api` | Headless API server with Swagger docs at `/docs` |
+| `python run.py --offline` | Air-gapped mode using bundled snapshots |
+| `python run.py --eval` | Run accuracy benchmarks |
+| `python run.py --rebuild` | Force a vector-index rebuild |
+| `python run.py --api` | Headless API with Swagger docs at `/docs` |
 
----
-
-## ⚙️ Configuration
-
-Copy the environment template and fill in what you need:
+### Configuration
 
 ```bash
 cp .env.example .env
 ```
 
-`.env.example` is documented inline. Set the API key for **one** provider.
+`.env.example` documents every setting. Add the API key for **one** provider:
 
-### Supported LLM providers
+| Provider | Example model | Key needed |
+|---|---|:-:|
+| Groq | `qwen/qwen3.8-27b`, `openai/gpt-oss-120b` | Yes |
+| OpenAI | `gpt-4o-mini` | Yes |
+| Anthropic | `claude-haiku-5-5` | Yes |
+| Google Gemini | `gemini-2.0-flash` | Yes |
+| Ollama (local) | `llama3.2` | No |
+| Extractive fallback | none | No |
 
-| Provider | Example model | API key needed |
-|----------|---------------|:--------------:|
-| **Groq** | `qwen/qwen3.8-27b`, `openai/gpt-oss-120b` | ✅ |
-| **OpenAI** | `gpt-4o-mini` | ✅ |
-| **Anthropic** | `claude-haiku-5-5` | ✅ |
-| **Google Gemini** | `gemini-2.0-flash` | ✅ |
-| **Ollama** (local) | `llama3.2` | ❌ |
-| **Extractive fallback** | none | ❌ |
-
-> Model availability changes often. Check each provider's current model list and update the value in `.env`.
+> Model names change often. Check your provider's current list and update `.env`.
 
 ---
 
-## 🧪 Evaluation & Testing
-
-### Unit tests
+## Evaluation
 
 ```bash
-pytest tests/test_pipeline.py
-```
-
-### Evaluation runner
-
-```bash
-python -m tests.run_rag_evaluation --mode regression
+pytest tests/test_pipeline.py                          # 32 unit tests
+python -m tests.run_rag_evaluation --mode regression   # full regression run
 ```
 
 | Mode | Purpose |
-|------|---------|
-| `evaluate` | Score the system against the question bank |
-| `diagnose` | Find which stage (retrieval, gate, generation) failed |
+|---|---|
+| `evaluate` | Score the system on the question bank |
+| `diagnose` | Find which stage failed: retrieval, gate, or generation |
 | `improve` | Surface candidate fixes from failures |
-| `regression` | Check that new changes don't break earlier behavior |
+| `regression` | Make sure new changes don't break earlier behavior |
 
-### The 220-question benchmark
+The 220-question bank (`tests/data/jklu_admission_questions.jsonl`) targets **how RAG systems actually fail**:
 
-`tests/data/jklu_admission_questions.jsonl` is built around **failure modes**, not just happy paths:
-
-| Category | What it tests |
-|----------|---------------|
-| Answerable | Facts that exist in the documents |
-| Unanswerable | Questions the bot must decline or escalate |
-| Ambiguous | Questions that need clarification |
-| Multi-intent | Several questions in one message |
-| Paraphrases | Same meaning, different wording |
-| Typos | Misspellings and noisy input |
-| Faculty retrieval | Name-sensitive lookups |
-| Conflicts | Contradictory source information |
-| Prompt injection | Attempts to override the system's rules |
-| Follow-ups | Context-dependent conversation turns |
-
-Approved query aliases live in `tests/evaluation/approved_query_aliases.json`.
+| Category | Tests that the system... |
+|---|---|
+| Answerable | finds facts present in the documents |
+| Unanswerable | declines or escalates when facts are absent |
+| Ambiguous | asks for clarification |
+| Multi-intent | handles several questions in one message |
+| Paraphrases | works across different wordings |
+| Typos | survives misspellings |
+| Faculty retrieval | handles name-sensitive lookups |
+| Conflicts | deals with contradictory sources |
+| Prompt injection | resists attempts to override its rules |
+| Follow-ups | keeps conversational context |
 
 ---
 
-## 🔌 API
-
-Start the headless server:
+## API
 
 ```bash
 python run.py --api
 ```
 
 | Endpoint | Description |
-|----------|-------------|
+|---|---|
 | `/docs` | Interactive Swagger / OpenAPI documentation |
 | `/api/feedback` | Submit feedback on an answer |
 | `/classic` | Classic HTML/JS interface |
 
-See `/docs` for the full list of endpoints and request schemas.
+See `/docs` for all endpoints and request schemas.
 
 ---
 
-## 🖥 Frontend
+## Frontend
 
 | Interface | Location | Notes |
-|-----------|----------|-------|
-| **React app** (default) | `frontend/dist/` | Pre-built, served by FastAPI. No Node.js required. |
+|---|---|---|
+| React app (default) | `frontend/dist/` | Pre-built and served by FastAPI |
 | React source | `frontend/ui/` | React 18, TypeScript, Tailwind, Vite |
 | Streamlit | `frontend/app.py` | Optional alternate UI |
-| Classic UI | `frontend/web/` | Plain HTML/JS, served at `/classic` |
+| Classic UI | `frontend/web/` | Plain HTML/JS at `/classic` |
 
-**Keyboard shortcuts:** `/` focuses the input · `Esc` closes the citation drawer.
-
-To modify the React UI:
+To modify the UI:
 
 ```bash
 cd frontend/ui
 npm install
-npm run dev      # development
-npm run build    # rebuild the bundle served from frontend/dist/
+npm run dev     # development server
+npm run build   # rebuild the bundle in frontend/dist/
 ```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 jklu-admission-chatbot/
@@ -412,32 +356,32 @@ jklu-admission-chatbot/
 
 ---
 
-## 🧭 Design Decisions
+## Design Decisions
 
-| Decision | Why |
-|----------|-----|
-| **Hybrid dense + sparse retrieval** | Dense embeddings capture meaning, while BM25 catches exact terms such as fee names, program codes, and faculty names. RRF combines them without tuning score scales. |
-| **Evidence gate before generation** | Deciding *whether* to answer is separate from *how* to answer. Gating first stops the LLM from improvising on weak evidence. |
-| **Escalate instead of guess** | For fees, scholarships, and policies, an honest "contact this office" is safer than a plausible guess. |
-| **Verified-memory fast path** | Repeated questions are served instantly and cost nothing, and answers stay consistent. |
-| **Entity and year guardrails on memory** | Similar phrasing across different people or academic years is the easiest way to serve a wrong answer from a cache. |
-| **Pre-built frontend bundle** | Anyone can run the app with Python alone. |
-| **Provider-agnostic LLM layer** | No lock-in, and an extractive fallback keeps it usable without any key. |
-| **Failure-mode test bank** | Tests target how RAG systems actually break: injection, typos, conflicts, and ambiguity. |
+| Decision | Rationale |
+|---|---|
+| Hybrid dense + sparse retrieval | Embeddings capture meaning; BM25 catches exact names and codes. RRF merges them without tuning score scales. |
+| Evidence gate before generation | Deciding *whether* to answer is separate from *how*. Gating first stops the LLM from improvising on weak evidence. |
+| Escalate instead of guess | For fees, scholarships, and policies, "contact this office" is safer than a plausible guess. |
+| Verified-memory fast path | Repeated questions are instant, free, and consistent. |
+| Entity and year guardrails | Similar phrasing across different people or years is the easiest way to serve a wrong cached answer. |
+| Pre-built frontend | Anyone can run the app with Python alone. |
+| Provider-agnostic LLM layer | No vendor lock-in; works even with no API key. |
+| Failure-mode test bank | Tests target real RAG failures: injection, typos, conflicts, ambiguity. |
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
 - [ ] Scheduled re-crawl to keep documents fresh
-- [ ] Multilingual support (Hindi and English)
+- [ ] Hindi and English multilingual support
 - [ ] Admin dashboard to review feedback and promote answers into verified memory
-- [ ] Retrieval-quality metrics (Recall@k, MRR, NDCG) tracked per release
+- [ ] Retrieval metrics (Recall@k, MRR, NDCG) tracked per release
 - [ ] Docker image and one-click deploy
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This chatbot answers from publicly available university documents and may be out of date. For fees, deadlines, eligibility, and scholarships, **always confirm with the official JKLU admissions office** before making decisions.
 
@@ -445,13 +389,12 @@ This chatbot answers from publicly available university documents and may be out
 
 ---
 
-## 👤 Author
+## Author
 
-**Nikunj Katta**
-GitHub: [@nikunj555](https://github.com/nikunj555) · [LinkedIn](https://linkedin.com/in/nikunj-katta-840a87352)
+**Nikunj Katta** · [@nikunj555](https://github.com/nikunj555) · [LinkedIn](https://linkedin.com/in/nikunj-katta-840a87352)
 
 <div align="center">
 
-If this project helped you, consider giving it a ⭐
+If this project is useful to you, consider giving it a star.
 
 </div>
