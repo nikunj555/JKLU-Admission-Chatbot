@@ -1,0 +1,51 @@
+id,question,type,category,expected_source,expected_terms,expected_status
+1,What is the minimum Class XII percentage required for B.Des admission?,direct,admission,eligibility,60%,answer
+2,How much do I need to score in 12th to get into Bachelor of Design?,paraphrased,admission,eligibility,60%,answer
+3,What are the steps in the JKLU application process?,direct,admission,application-process,application,answer
+4,How do I apply to JKLU?,paraphrased,admission,application-process,,answer
+5,Which documents must be uploaded while applying?,direct,admission,application-process,photograph,answer
+6,Which entrance exams does JKLU accept?,direct,admission,entrance-exams,JEE,answer
+7,What is the JKLU Design Entrance Test?,direct,admission,entrance-exams,DET,answer
+8,What are the eligibility criteria and the application process for B.Tech?,multi-part,admission,eligibility&application-process,,answer
+9,What is the annual academic fee for B.Tech in 2026-27?,direct,fees,fee-structure,"2,84,000",answer
+10,How much is the yearly tuition for the Bachelor of Technology programme?,paraphrased,fees,fee-structure,"2,84,000",answer
+11,What is the M.Tech academic fee?,direct,fees,fee-structure,"1,80,000",answer
+12,What is the hostel fee for AC rooms?,direct,fees,fee-structure,Hostel Fee,answer
+13,What is the fee refund policy if I withdraw my admission?,direct,fees,Fee_Refund,100%,answer
+14,Where can I find the admission withdrawal form?,direct,admission,Withdrawal,withdrawal,answer
+15,What scholarship can I get with JEE Main percentile above 95?,direct,scholarships,scholarship-aid,50%,answer
+16,Is there any financial aid based on Class 12 marks?,paraphrased,scholarships,scholarship-aid,,answer
+17,What is the phone number of the Registrar?,direct,contact,contact-us,7107500,answer
+18,How can I contact the admissions office?,direct,contact,contact-us,222 3344,answer
+19,Where is the JKLU campus located?,direct,contact,contact-us,Mahapura,answer
+20,Which letter grades are awarded at JKLU?,direct,examination,guidelines-for-the-award-of-grades,A+,answer
+21,When is a student placed on academic probation?,direct,examination,academically-deficient,Probation,answer
+22,What are the rules on student attendance?,direct,examination,JKLU_Regulations|change-in-rules,attendance,answer
+23,What is the penalty for using unfair means in examinations?,direct,examination,JKLU_Regulations,unfair,answer
+24,Which specialisations are offered in B.Tech CSE?,direct,academics,programme/btech,cyber,answer
+25,What does the BBA FinTech curriculum cover?,direct,academics,bba-fintech,fintech,answer
+26,What is the structure of PhD coursework?,direct,academics,handbook-phd|programme/phd,,answer
+27,Where can I see the academic calendar for 2026-27?,direct,academics,academic-calander|calendar,2026-27,answer
+28,What is the vision of JKLU?,direct,general,vision-mission,vision,answer
+29,What is the hostel fee and what are the hostel visitor rules?,multi-part,hostel,fee-structure&hostel,,answer
+30,What are the hostel entry and exit timings?,direct,hostel,hostel,,answer
+31,Can my parents stay overnight in my hostel room?,paraphrased,hostel,hostel,,answer
+32,Who is the hostel warden and how do I contact them?,direct,hostel,hostel,warden,answer
+33,Who won the FIFA World Cup?,irrelevant,none,,,escalate
+34,What is the capital of France?,irrelevant,none,,,escalate
+35,Give me a recipe for chocolate cake,irrelevant,none,,,escalate
+36,Which is the best cricket team in the world?,irrelevant,none,,,escalate
+37,What will be the hostel fee in 2030?,unsupported,none,,,escalate
+38,What was the B.Tech tuition fee in 2015?,unsupported,none,,,escalate
+39,What is the fee?,ambiguous,none,,,clarify
+40,Tell me about eligibility,ambiguous,none,,,clarify
+41,hostel,ambiguous,none,,,clarify
+42,Who are the faculty members in computer science?,direct,faculty,faculty|brochure,professor,answer
+43,Tell me the full fees for B.Tech including hostel charges,multi-part,fees,fee-structure,"2,84,000;hostel",answer
+44,How many acres is the JKLU campus?,direct,general,jklu act|campus,30,answer
+45,What are the placement highlights for B.Tech?,direct,general,brochure|placement,18.07,answer
+46,What student clubs are active at JKLU?,direct,general,newsroom|brochure|campus,club,answer
+47,What sports facilities are available to students?,direct,general,brochure|councils|bba,sports,answer
+48,Tell me about international exchange and semester abroad,direct,academics,brochure|cglp|programme,international,answer
+49,What documents should I carry for registration?,direct,admission,admission|application,document,answer
+50,What is RAG in Artificial Intelligence?,direct,academics,curriculum|btech|brochure,generation,answer

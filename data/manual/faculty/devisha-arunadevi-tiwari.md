@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Devisha Arunadevi Tiwari
+
+- **Faculty Name**: Dr. Devisha Arunadevi Tiwari
+- **Designation**: Assistant Professor
+- **Department**: Computer Science and Engineering
+- **Institute / School**: Institute of Engineering & Technology
+- **Official Profile URL**: https://jklu.edu.in/faculty/devisha-arunadevi-tiwari
+- **Verified Teaching Areas & Courses**: Distributed Computing Artificial Intelligence Cryptography and Network Security Programming Principles using C and Java Numerical Computing (Advanced Computing) using Matlab Operations Research Business Analytics Data Visualization Big Data Advanced Machine Learning Data Driven Decision Making Distributed Data Processing using PySpark Security Essentials using Applied AI Design of LLM Application Architectures
+- **Research Interests**: Secure Data Transmission Chaos-based Cryptography Neural Networks Evolutionary Computing Computational Intelligence & Swarm Intelligence Particle Swarm Optimization Advanced Machine Learning Multi-Strategy Learning Reasoning and Inference Large Language Models Prompt Engineering Explainable AI (XAI) Responsible AI (ResAI) Natural Language Processing Knowledge Representation & Reasoning in LLMs
+- **Biography & Academic Background**: Dr. Devisha Arunadevi Tiwari holds a PhD in Computer Science and Engineering from the National Institute of Technology (NIT) Patna, India. She also earned an M. Tech in Computer Science and Engineering and a B.E. in Computer Technology from Rashtrasant Tukodoji Maharaj Nagpur University, India. With more than a decade of academic teaching and research experience, her work focuses on emerging areas of computer science, data science, and artificial intelligence. Tiwari is an Axelos Certified Project Manager and has also completed the Data Scientist & AI Engineer Master’s Program from Simplilearn in collaboration with the Apache Alliance under the Apache Software Foundation. Her academic and research interests span across advanced computing technologies, data-driven systems, and innovative applications of artificial intelligence.
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/devisha-arunadevi-tiwari)*

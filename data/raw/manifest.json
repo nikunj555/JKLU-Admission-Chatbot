@@ -1,0 +1,932 @@
+{
+  "https://naac.jklu.edu.in/wp-content/uploads/2021/06/JKLU_Regulations.pdf": {
+    "file": "data/raw/pdfs/JKLU_Regulations.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:17.644065+00:00"
+  },
+  "https://jklu.edu.in/uploads/images/Withdrawal Application Form_2026.pdf": {
+    "file": "data/raw/pdfs/Withdrawal_Application_Form_2026.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:29.160606+00:00"
+  },
+  "https://jklu.edu.in/uploads/images/Fee_Refund_Policy_2026.pdf": {
+    "file": "data/raw/pdfs/Fee_Refund_Policy_2026.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:30.013108+00:00"
+  },
+  "https://jklu.edu.in/pdf/institute-of-ingineering-and-technology-2025-2026.pdf": {
+    "file": "data/raw/pdfs/institute-of-ingineering-and-technology-2025-2026.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:43.601110+00:00"
+  },
+  "https://jklu.edu.in/uploads/course/pdf/Engineering-JKLU-New-Brochure-March2025-V9 (2).pdf": {
+    "file": "data/raw/pdfs/Engineering-JKLU-New-Brochure-March2025-V9_2_.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:50.187217+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/guidelines-for-the-award-of-grades.pdf": {
+    "file": "data/raw/pdfs/guidelines-for-the-award-of-grades.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:58.022237+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/revised-guidelines-for-the-award-of-grades.pdf": {
+    "file": "data/raw/pdfs/revised-guidelines-for-the-award-of-grades.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:58.863161+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/rules-for-Identification-and-classification-of-academically-deficient-students.pdf": {
+    "file": "data/raw/pdfs/rules-for-Identification-and-classification-of-academically-deficient-students.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:56:59.720470+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/change-in-rules.pdf": {
+    "file": "data/raw/pdfs/change-in-rules.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:00.575951+00:00"
+  },
+  "https://jklu.edu.in/uploads/images/JKLU - Prospectus.pdf": {
+    "file": "data/raw/pdfs/JKLU_-_Prospectus.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:05.929722+00:00"
+  },
+  "https://jklu.edu.in/uploads/pdf/university-prospectus.pdf": {
+    "file": "data/raw/pdfs/university-prospectus.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:11.017034+00:00"
+  },
+  "https://jklu.edu.in/pdf/handbook-phd-coursework-ay-2024-25.pdf": {
+    "file": "data/raw/pdfs/handbook-phd-coursework-ay-2024-25.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:18.726584+00:00"
+  },
+  "https://jklu.edu.in/uploads/course/pdf/btech-cse-2023-2027.pdf": {
+    "file": "data/raw/pdfs/btech-cse-2023-2027.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:19.711152+00:00"
+  },
+  "https://jklu.edu.in/uploads/course/pdf/btech-in-cse_ai-2023-2027.pdf": {
+    "file": "data/raw/pdfs/btech-in-cse_ai-2023-2027.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-08T05:57:20.752145+00:00"
+  },
+  "https://jklu.edu.in/admissions/lateral-entry": {
+    "file": "data/raw/html/lateral-entry.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:26+00:00"
+  },
+  "https://jklu.edu.in/admissions/entrance-exams": {
+    "file": "data/raw/html/entrance-exams.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:26+00:00"
+  },
+  "https://jklu.edu.in/admissions/application-process": {
+    "file": "data/raw/html/application-process.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:26+00:00"
+  },
+  "https://jklu.edu.in/admissions/eligibility": {
+    "file": "data/raw/html/eligibility.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:26+00:00"
+  },
+  "https://jklu.edu.in/admissions/international-admissions": {
+    "file": "data/raw/html/international-admissions.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:27+00:00"
+  },
+  "https://jklu.edu.in/admissions/brochures": {
+    "file": "data/raw/html/brochures.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:27+00:00"
+  },
+  "https://jklu.edu.in/admissions/fee-structure": {
+    "file": "data/raw/html/fee-structure.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:27+00:00"
+  },
+  "https://jklu.edu.in/admissions/scholarship-aid": {
+    "file": "data/raw/html/scholarship-aid.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:27+00:00"
+  },
+  "https://jklu.edu.in/programmes": {
+    "file": "data/raw/html/programmes.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/uploads/images/Hostel-Life-Policy-JKLU-AY-2026-2027.pdf": {
+    "file": "data/raw/pdfs/Hostel-Life-Policy-JKLU-AY-2026-2027.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:12+00:00"
+  },
+  "https://jklu.edu.in/programme/btech": {
+    "file": "data/raw/html/btech.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/programme/bdes": {
+    "file": "data/raw/html/bdes.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/programme/bba": {
+    "file": "data/raw/html/bba.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/programme/mtech": {
+    "file": "data/raw/html/mtech.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/programme/mdes": {
+    "file": "data/raw/html/mdes.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:28+00:00"
+  },
+  "https://jklu.edu.in/programme/phd": {
+    "file": "data/raw/html/phd.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:29+00:00"
+  },
+  "https://jklu.edu.in/institute/engineering-technology": {
+    "file": "data/raw/html/engineering-technology.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:29+00:00"
+  },
+  "https://jklu.edu.in/institute/design": {
+    "file": "data/raw/html/design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:29+00:00"
+  },
+  "https://jklu.edu.in/institute/management": {
+    "file": "data/raw/html/management.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:29+00:00"
+  },
+  "https://jklu.edu.in/academics/academic-regulations": {
+    "file": "data/raw/html/academic-regulations.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:30+00:00"
+  },
+  "https://jklu.edu.in/academics/academic-calander": {
+    "file": "data/raw/html/academic-calander.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:30+00:00"
+  },
+  "https://jklu.edu.in/academics/innovative-pedagogy": {
+    "file": "data/raw/html/innovative-pedagogy.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:30+00:00"
+  },
+  "https://jklu.edu.in/academics/collaborations": {
+    "file": "data/raw/html/collaborations.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:31+00:00"
+  },
+  "https://jklu.edu.in/contact-us": {
+    "file": "data/raw/html/contact-us.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:33+00:00"
+  },
+  "https://jklu.edu.in/announcements": {
+    "file": "data/raw/html/announcements.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:33+00:00"
+  },
+  "https://jklu.edu.in/newsroom": {
+    "file": "data/raw/html/newsroom.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:33+00:00"
+  },
+  "https://jklu.edu.in/about-us/vision-mission": {
+    "file": "data/raw/html/vision-mission.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:33+00:00"
+  },
+  "https://jklu.edu.in/about-us/leadership-governance": {
+    "file": "data/raw/html/leadership-governance.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:34+00:00"
+  },
+  "https://jklu.edu.in": {
+    "file": "data/raw/html/jklu.edu.in",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:34+00:00"
+  },
+  "https://jklu.edu.in/about-us/rankings-accreditations": {
+    "file": "data/raw/html/rankings-accreditations.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:35+00:00"
+  },
+  "https://jklu.edu.in/about-us/leadership-insights": {
+    "file": "data/raw/html/leadership-insights.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:35+00:00"
+  },
+  "https://jklu.edu.in/about-us/milestones": {
+    "file": "data/raw/html/milestones.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:35+00:00"
+  },
+  "https://jklu.edu.in/about-us/about-jklu": {
+    "file": "data/raw/html/about-jklu.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:35+00:00"
+  },
+  "https://jklu.edu.in/about-us/iqac": {
+    "file": "data/raw/html/iqac.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:36+00:00"
+  },
+  "https://jklu.edu.in/about-us/sustainability": {
+    "file": "data/raw/html/sustainability.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:36+00:00"
+  },
+  "https://jklu.edu.in/programmes/undergraduate": {
+    "file": "data/raw/html/undergraduate.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:36+00:00"
+  },
+  "https://jklu.edu.in/programme/bba-fintech": {
+    "file": "data/raw/html/bba-fintech.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:36+00:00"
+  },
+  "https://jklu.edu.in/programme/bba-honours": {
+    "file": "data/raw/html/bba-honours.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:36+00:00"
+  },
+  "https://jklu.edu.in/programme/bba-kpmg-certification": {
+    "file": "data/raw/html/bba-kpmg-certification.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:37+00:00"
+  },
+  "https://jklu.edu.in/programmes/postgraduate": {
+    "file": "data/raw/html/postgraduate.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:37+00:00"
+  },
+  "https://jklu.edu.in/programmes/doctoral": {
+    "file": "data/raw/html/doctoral.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:37+00:00"
+  },
+  "https://jklu.edu.in/centres/centre-for-communication-and-critical-thinking": {
+    "file": "data/raw/html/centre-for-communication-and-critical-thinking.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:37+00:00"
+  },
+  "https://jklu.edu.in/pdf/Honors-List-February-2025.pdf": {
+    "file": "data/raw/pdfs/Honors-List-February-2025.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:23+00:00"
+  },
+  "https://jklu.edu.in/centres/atal-incubation-centre": {
+    "file": "data/raw/html/atal-incubation-centre.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:37+00:00"
+  },
+  "https://jklu.edu.in/centres/centre-for-global-learning-programs-cglp": {
+    "file": "data/raw/html/centre-for-global-learning-programs-cglp.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/studios": {
+    "file": "data/raw/html/studios.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/advanced-labs": {
+    "file": "data/raw/html/advanced-labs.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/makerspace": {
+    "file": "data/raw/html/makerspace.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/lrc": {
+    "file": "data/raw/html/lrc.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/mp-ranjan-design-resource-centre": {
+    "file": "data/raw/html/mp-ranjan-design-resource-centre.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:38+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/hostel": {
+    "file": "data/raw/html/hostel.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/eateries": {
+    "file": "data/raw/html/eateries.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities/fitness-centre": {
+    "file": "data/raw/html/fitness-centre.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/festivals": {
+    "file": "data/raw/html/festivals.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/student-council": {
+    "file": "data/raw/html/student-council.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/sports-recreation": {
+    "file": "data/raw/html/sports-recreation.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:39+00:00"
+  },
+  "https://jklu.edu.in/campus-life/student-affairs": {
+    "file": "data/raw/html/student-affairs.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:40+00:00"
+  },
+  "https://jklu.edu.in/campus-life/health-wellness": {
+    "file": "data/raw/html/health-wellness.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:40+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies": {
+    "file": "data/raw/html/clubs-societies.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:40+00:00"
+  },
+  "https://jklu.edu.in/campus-life/life-in-jaipur": {
+    "file": "data/raw/html/life-in-jaipur.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:40+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/JKLU-Prospectus.pdf": {
+    "file": "data/raw/pdfs/JKLU-Prospectus.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:26+00:00"
+  },
+  "https://jklu.edu.in/policies": {
+    "file": "data/raw/html/policies.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:41+00:00"
+  },
+  "https://jklu.edu.in/pdf/code-of-conduct-students.pdf": {
+    "file": "data/raw/pdfs/code-of-conduct-students.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/code-of-conduct-employees.pdf": {
+    "file": "data/raw/pdfs/code-of-conduct-employees.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/Format-Public-Self-Disclosure.pdf": {
+    "file": "data/raw/pdfs/Format-Public-Self-Disclosure.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/Pradhan-Mantri-Vidya-Lakshmi.pdf": {
+    "file": "data/raw/pdfs/Pradhan-Mantri-Vidya-Lakshmi.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/academics/centres": {
+    "file": "data/raw/html/centres.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:41+00:00"
+  },
+  "https://jklu.edu.in/pdf/academic-and-activity-calendar-odd-sem-2026-27-final.pdf": {
+    "file": "data/raw/pdfs/academic-and-activity-calendar-odd-sem-2026-27-final.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/uploads/images/academic-and-activity-calendar-even-sem-2025-26.pdf": {
+    "file": "data/raw/pdfs/academic-and-activity-calendar-even-sem-2025-26.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/2024_25-Even-Sem.pdf": {
+    "file": "data/raw/pdfs/2024_25-Even-Sem.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/2024-25-Odd-Sem.pdf": {
+    "file": "data/raw/pdfs/2024-25-Odd-Sem.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:27+00:00"
+  },
+  "https://jklu.edu.in/pdf/2023-24-Even-Sem.pdf": {
+    "file": "data/raw/pdfs/2023-24-Even-Sem.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:28+00:00"
+  },
+  "https://jklu.edu.in/pdf/2023-24-Odd-Sem.pdf": {
+    "file": "data/raw/pdfs/2023-24-Odd-Sem.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:28+00:00"
+  },
+  "https://jklu.edu.in/pdf/2022-23.pdf": {
+    "file": "data/raw/pdfs/2022-23.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:28+00:00"
+  },
+  "https://jklu.edu.in/admissions/faq": {
+    "file": "data/raw/html/faq.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:42+00:00"
+  },
+  "https://jklu.edu.in/pdf/Academic-and-Activity-Calendar_Odd-Sem-2025-26.pdf": {
+    "file": "data/raw/pdfs/Academic-and-Activity-Calendar_Odd-Sem-2025-26.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:28+00:00"
+  },
+  "https://jklu.edu.in/pdf/2021-2022.pdf": {
+    "file": "data/raw/pdfs/2021-2022.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:28+00:00"
+  },
+  "https://jklu.edu.in/programme/bachelor-of-business-administration": {
+    "file": "data/raw/html/bachelor-of-business-administration.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:42+00:00"
+  },
+  "https://jklu.edu.in/programme/bdes-product-design": {
+    "file": "data/raw/html/bdes-product-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:42+00:00"
+  },
+  "https://jklu.edu.in/programme/bdes-interdisciplinary-design": {
+    "file": "data/raw/html/bdes-interdisciplinary-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:42+00:00"
+  },
+  "https://jklu.edu.in/programme/bdes-interaction-design": {
+    "file": "data/raw/html/bdes-interaction-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:42+00:00"
+  },
+  "https://jklu.edu.in/programme/btech-cse": {
+    "file": "data/raw/html/btech-cse.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:43+00:00"
+  },
+  "https://jklu.edu.in/programme/bdes-integrated-communication-design": {
+    "file": "data/raw/html/bdes-integrated-communication-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:43+00:00"
+  },
+  "https://jklu.edu.in/programme/btech-cse-ai": {
+    "file": "data/raw/html/btech-cse-ai.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:43+00:00"
+  },
+  "https://jklu.edu.in/programme/btech-cse-cybersecurity": {
+    "file": "data/raw/html/btech-cse-cybersecurity.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:43+00:00"
+  },
+  "https://jklu.edu.in/programme/btech-cse-data-science": {
+    "file": "data/raw/html/btech-cse-data-science.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:44+00:00"
+  },
+  "https://jklu.edu.in/programme/btech-ece-vlsi-design": {
+    "file": "data/raw/html/btech-ece-vlsi-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:44+00:00"
+  },
+  "https://jklu.edu.in/programme/mdes-interaction-design": {
+    "file": "data/raw/html/mdes-interaction-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:44+00:00"
+  },
+  "https://jklu.edu.in/programme/mdes-product-design": {
+    "file": "data/raw/html/mdes-product-design.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:44+00:00"
+  },
+  "https://jklu.edu.in/programme/mtech-cse": {
+    "file": "data/raw/html/mtech-cse.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:44+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/103SC_Cycle1.pdf": {
+    "file": "data/raw/pdfs/103SC_Cycle1.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:32+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/siro.pdf": {
+    "file": "data/raw/pdfs/siro.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:32+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/provisional-membership_aiu.pdf": {
+    "file": "data/raw/pdfs/provisional-membership_aiu.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:32+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/ugc.pdf": {
+    "file": "data/raw/pdfs/ugc.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:32+00:00"
+  },
+  "https://jklu.edu.in/siteassets/pdf/JKLU-Act.pdf": {
+    "file": "data/raw/pdfs/JKLU-Act.pdf",
+    "kind": "pdf",
+    "fetched_at": "2026-10-11T19:18:32+00:00"
+  },
+  "https://jklu.edu.in/academics/centres/atal-incubation-centre": {
+    "file": "data/raw/html/0091f9_atal-incubation-centre.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/facilities": {
+    "file": "data/raw/html/facilities.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/academics/centres/centre-for-communication-and-critical-thinking": {
+    "file": "data/raw/html/08e320_centre-for-communication-and-critical-thinking.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/competitive-programming-club": {
+    "file": "data/raw/html/competitive-programming-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/robotics-club": {
+    "file": "data/raw/html/robotics-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/coding-club": {
+    "file": "data/raw/html/coding-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/astronomy-club": {
+    "file": "data/raw/html/astronomy-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/photography-club": {
+    "file": "data/raw/html/photography-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:46+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/design-club": {
+    "file": "data/raw/html/design-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:47+00:00"
+  },
+  "https://jklu.edu.in/campus-life/clubs-societies/literary-club": {
+    "file": "data/raw/html/literary-club.html",
+    "kind": "html",
+    "fetched_at": "2026-10-11T19:33:47+00:00"
+  },
+  "https://jklu.edu.in/faculty/suprita-talnikar": {
+    "file": "data/raw/html/faculty_suprita-talnikar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/afreen-gani-faridi": {
+    "file": "data/raw/html/faculty_afreen-gani-faridi.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/aman-mishra": {
+    "file": "data/raw/html/faculty_aman-mishra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/nitya-pawar": {
+    "file": "data/raw/html/faculty_nitya-pawar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/vijaylakshmi": {
+    "file": "data/raw/html/faculty_vijaylakshmi.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/mohd-shahnawaz-khan": {
+    "file": "data/raw/html/faculty_mohd-shahnawaz-khan.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/ashutosh-kumar": {
+    "file": "data/raw/html/faculty_ashutosh-kumar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/devendra-bhavsar": {
+    "file": "data/raw/html/faculty_devendra-bhavsar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/akshat-agrawal": {
+    "file": "data/raw/html/faculty_akshat-agrawal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/amar-nath-patra": {
+    "file": "data/raw/html/faculty_amar-nath-patra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/amit-kumar-sinhal": {
+    "file": "data/raw/html/faculty_amit-kumar-sinhal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/anamika-satrawala": {
+    "file": "data/raw/html/faculty_anamika-satrawala.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/ankush-soni": {
+    "file": "data/raw/html/faculty_ankush-soni.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/ashish-jain": {
+    "file": "data/raw/html/faculty_ashish-jain.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/deepika-prakash": {
+    "file": "data/raw/html/faculty_deepika-prakash.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/devisha-arunadevi-tiwari": {
+    "file": "data/raw/html/faculty_devisha-arunadevi-tiwari.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/pranab-roy": {
+    "file": "data/raw/html/faculty_pranab-roy.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/rohit-singh": {
+    "file": "data/raw/html/faculty_rohit-singh.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/satveer-singh": {
+    "file": "data/raw/html/faculty_satveer-singh.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/sonali-vyas": {
+    "file": "data/raw/html/faculty_sonali-vyas.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/surbhi-chhabra": {
+    "file": "data/raw/html/faculty_surbhi-chhabra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/tapas-kumar": {
+    "file": "data/raw/html/faculty_tapas-kumar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/taruna-sunil": {
+    "file": "data/raw/html/faculty_taruna-sunil.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/gaurav-raj": {
+    "file": "data/raw/html/faculty_gaurav-raj.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/mayank-kumar-kundalwal": {
+    "file": "data/raw/html/faculty_mayank-kumar-kundalwal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/supriya-mishra": {
+    "file": "data/raw/html/faculty_supriya-mishra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/sheetal-mundra": {
+    "file": "data/raw/html/faculty_sheetal-mundra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/hanuman-prasad-agrawal": {
+    "file": "data/raw/html/faculty_hanuman-prasad-agrawal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/divanshu-jain": {
+    "file": "data/raw/html/faculty_divanshu-jain.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/devika-kataria": {
+    "file": "data/raw/html/faculty_devika-kataria.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/gaurav-mani-khanal": {
+    "file": "data/raw/html/faculty_gaurav-mani-khanal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/manju-rana": {
+    "file": "data/raw/html/faculty_manju-rana.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/megha-sahu-": {
+    "file": "data/raw/html/faculty_megha-sahu-.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/rajnish-kumar": {
+    "file": "data/raw/html/faculty_rajnish-kumar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/rashmi-kushwaha": {
+    "file": "data/raw/html/faculty_rashmi-kushwaha.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/lokanath-mishra": {
+    "file": "data/raw/html/faculty_lokanath-mishra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/riya-sureka": {
+    "file": "data/raw/html/faculty_riya-sureka.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/a-balasubramaniam": {
+    "file": "data/raw/html/faculty_a-balasubramaniam.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/abhishek-meena": {
+    "file": "data/raw/html/faculty_abhishek-meena.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/amitanshu-rajesh-shrivastav": {
+    "file": "data/raw/html/faculty_amitanshu-rajesh-shrivastav.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/binil-mohan": {
+    "file": "data/raw/html/faculty_binil-mohan.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/anshu-yadav": {
+    "file": "data/raw/html/faculty_anshu-yadav.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/jyoti-prakash-cr-naidu": {
+    "file": "data/raw/html/faculty_jyoti-prakash-cr-naidu.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/nitin-vishwakarma": {
+    "file": "data/raw/html/faculty_nitin-vishwakarma.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/manish-sharma-": {
+    "file": "data/raw/html/faculty_manish-sharma-.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/rattan-gangadhar": {
+    "file": "data/raw/html/faculty_rattan-gangadhar.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/sonali-gupta": {
+    "file": "data/raw/html/faculty_sonali-gupta.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/vishwajeet": {
+    "file": "data/raw/html/faculty_vishwajeet.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/yash-bahadur-raizada": {
+    "file": "data/raw/html/faculty_yash-bahadur-raizada.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/abhinav-kumar-khorwal": {
+    "file": "data/raw/html/faculty_abhinav-kumar-khorwal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/anant-pratap-singh": {
+    "file": "data/raw/html/faculty_anant-pratap-singh.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/krishna-chaitanya-solasa": {
+    "file": "data/raw/html/faculty_krishna-chaitanya-solasa.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/sushant-pokhriyal": {
+    "file": "data/raw/html/faculty_sushant-pokhriyal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/azhar-ahmed-sheikh": {
+    "file": "data/raw/html/faculty_azhar-ahmed-sheikh.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/anusha-hegde": {
+    "file": "data/raw/html/faculty_anusha-hegde.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/ashwini-sharma": {
+    "file": "data/raw/html/faculty_ashwini-sharma.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/shubham-ranjan": {
+    "file": "data/raw/html/faculty_shubham-ranjan.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/shiva-singh": {
+    "file": "data/raw/html/faculty_shiva-singh.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/shobha-mangal": {
+    "file": "data/raw/html/faculty_shobha-mangal.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/punam-mishra": {
+    "file": "data/raw/html/faculty_punam-mishra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/shivram-choudhary": {
+    "file": "data/raw/html/faculty_shivram-choudhary.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/jaya-gupta": {
+    "file": "data/raw/html/faculty_jaya-gupta.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/manushi-gupta": {
+    "file": "data/raw/html/faculty_manushi-gupta.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/rabia-kamra": {
+    "file": "data/raw/html/faculty_rabia-kamra.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/richa-sharma": {
+    "file": "data/raw/html/faculty_richa-sharma.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/umesh-gupta": {
+    "file": "data/raw/html/faculty_umesh-gupta.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  },
+  "https://jklu.edu.in/faculty/monika-soni": {
+    "file": "data/raw/html/faculty_monika-soni.html",
+    "kind": "html",
+    "fetched_at": "2026-10-16T06:21:48+00:00"
+  }
+}

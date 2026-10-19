@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Umesh Gupta
+
+- **Faculty Name**: Dr. Umesh Gupta
+- **Designation**: Professor and Dean of Academic Affairs
+- **Department**: Mathematics
+- **Institute / School**: Institute of Engineering & Technology
+- **Official Profile URL**: https://jklu.edu.in/faculty/umesh-gupta
+- **Verified Teaching Areas & Courses**: Statistical Data Analysis (MTech) Research Methodology (PhD) Single-objective Optimization Techniques (PhD) Multi-objective Optimization Techniques (PhD) Statistics for Research (PhD) Probability and Statistics (PGD) Computational Data Analysis Computational Mathematics Statistical Computing Calculus and Applied Mechanics Theoretical Foundation for Computer Science Graph Theory Random Variables and Stochastic Processes Theory of Computation Discrete Structure for Computer Science Calculus and Linear Algebra Differential Equations and Complex Analysis Numerical and Statistical Methods Engineering Optimization Engineering Mathematics-I & II Business Statistics Business Mathematics
+- **Research Interests**: Statistical Data Analysis Optimization Techniques Education Fluid Mechanics
+- **Biography & Academic Background**: Professor (Dr.) Umesh Gupta has 25 years of experience in teaching and research. He is working as Dean of Academic Affairs and Professor in Mathematics at JK Lakshmipat University, Jaipur. His areas of expertise are Statistical Data Analysis and Optimization Techniques. He had also worked as a Visiting Professor at St. Cloud State University, USA. He is a member of the American Mathematical Society, Indian Mathematical Society, Soft Computing Research Society, ISTD Jaipur, Vigyan Bharti Rajasthan, Operational Research Society of India, and the Rajasthan Academy of Physical Sciences. Umesh Gupta is a senior member of IACSIT, Singapore. He has a number of research publications in various International & National Journals & Conference Proceedings to his credit. Umesh Gupta has written the textbooks of Engineering Mathematics and Research Methods in Management. Umesh Gupta was the founder and president of the Institution’s Innovation Council of MHRD, Govt. of India at JKLU, and also the core team member of the Atal Incubation Center – JKLU. His research interest includes Statistical Data Analysis, Optimization Techniques, and Fluid Mechanics.
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/umesh-gupta)*

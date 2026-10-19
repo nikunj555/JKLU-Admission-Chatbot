@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#f8f9ff"/>
+<title>JKLU Information Assistant</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f3876'/%3E%3Ctext x='32' y='41' font-family='Arial' font-weight='700' font-size='24' text-anchor='middle' fill='white'%3EJK%3C/text%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="/static/css/app.css"/>
+</head>
+<body class="font-sans antialiased text-on-surface">
+
+<!-- depth backdrop + 3D scene -->
+<div aria-hidden="true" class="fixed inset-0 pointer-events-none" style="z-index:0;background:
+  radial-gradient(900px 600px at 85% -10%,rgba(60,93,157,.20),transparent 60%),
+  radial-gradient(700px 520px at -5% 105%,rgba(15,56,118,.14),transparent 60%),
+  linear-gradient(180deg,#f8f9ff,#eef3ff)"></div>
+<canvas id="bg3d" aria-hidden="true" class="fixed inset-0 w-full h-full pointer-events-none" style="z-index:0"></canvas>
+
+<div id="app" class="relative h-full flex" style="z-index:1">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="sidebar" class="glass slide-in fixed md:static inset-y-0 left-0 z-40 w-80 max-w-[86vw] flex flex-col justify-between p-5 border-r border-outline-variant/70 shrink-0 overflow-y-auto transition-transform duration-300 -translate-x-full md:translate-x-0 shadow-float md:shadow-none">
+    <div class="space-y-5">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="cube-wrap cube-sm" aria-hidden="true"><div class="cube"><i class="f1">J</i><i class="f2">K</i><i class="f3">L</i><i class="f4">U</i><i class="f5"></i><i class="f6"></i></div></div>
+          <div>
+            <h1 class="text-lg font-bold text-primary leading-tight tracking-tight">JKLU Assistant</h1>
+            <p class="text-xs text-secondary">University information, with sources</p>
+          </div>
+        </div>
+        <button aria-label="Close menu" class="md:hidden p-1.5 rounded-lg text-secondary hover:bg-surface-container" onclick="toggleSidebar()"><i data-ic="x"></i></button>
+      </div>
+
+      <p class="p-3 bg-surface-container-low/80 rounded-xl border border-outline-variant text-xs text-secondary leading-relaxed flex gap-2">
+        <i data-ic="shield-check" data-size="16" class="text-primary mt-0.5"></i>
+        <span><span class="font-semibold text-primary">Official grounding.</span> Answers come only from JKLU's official website and documents.</span>
+      </p>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold" for="topic">Topic</label>
+        <div class="relative">
+          <select id="topic" class="w-full bg-white/90 border border-outline-variant rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-surface-tint appearance-none cursor-pointer">
+            <option value="">All topics</option>
+          </select>
+          <i data-ic="chevron-down" class="pointer-events-none absolute right-2.5 top-3 text-secondary"></i>
+        </div>
+      </div>
+
+      <div class="space-y-1 pt-3 border-t border-outline-variant/60">
+        <div class="flex justify-between items-center text-xs">
+          <label for="topk" class="font-medium">Passages to retrieve</label>
+          <span id="topk-val" class="font-code font-semibold text-primary bg-surface-container px-2 py-0.5 rounded-md border border-outline-variant">5</span>
+        </div>
+        <input id="topk" type="range" min="3" max="8" value="5" class="w-full" style="--fill:40%"/>
+        <div class="flex justify-between text-xs text-secondary"><span>3 focused</span><span>8 broad</span></div>
+      </div>
+
+      <div class="space-y-2 pt-3 border-t border-outline-variant/60">
+        <span class="text-xs text-secondary font-semibold uppercase tracking-wider">Try asking</span>
+        <div id="examples" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <div class="space-y-4 pt-5">
+      <button id="clear" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-outline-variant bg-white/80 text-sm font-medium hover:bg-surface-container-low hover:text-primary transition-colors">
+        <i data-ic="rotate-ccw" data-size="16"></i>Clear chat
+      </button>
+      <div class="p-3 bg-white/70 rounded-xl border border-outline-variant space-y-2 text-xs text-secondary">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-on-surface">Knowledge base</span>
+          <span class="flex items-center gap-1.5"><span id="st-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span id="st-text" class="font-medium">Connecting...</span></span>
+        </div>
+        <div class="flex justify-between border-t border-outline-variant/40 pt-1.5"><span>Passages indexed</span><span id="st-chunks" class="font-code text-on-surface font-semibold">-</span></div>
+        <div class="flex justify-between gap-2"><span>Retrieval</span><span id="st-ret" class="text-on-surface text-right">-</span></div>
+        <div class="flex justify-between gap-2"><span>Answer mode</span><span id="st-llm" class="text-on-surface text-right">-</span></div>
+      </div>
+    </div>
+  </aside>
+  <div id="scrim" class="hidden fixed inset-0 bg-on-surface/30 z-30 md:hidden" onclick="toggleSidebar()"></div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="flex-1 min-w-0 flex flex-col h-full">
+    <header class="glass px-4 sm:px-6 py-3 border-b border-outline-variant/70 shrink-0 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <button aria-label="Open menu" class="md:hidden p-2 rounded-xl border border-outline-variant text-secondary hover:bg-surface-container" onclick="toggleSidebar()"><i data-ic="menu"></i></button>
+        <div class="min-w-0">
+          <h2 class="text-base sm:text-lg font-bold text-primary tracking-tight truncate">JKLU University Information Assistant</h2>
+          <p class="text-xs text-secondary truncate hidden sm:block">Admissions • Fees • Scholarships • Hostel • Examinations • Programmes • Contacts</p>
+        </div>
+      </div>
+      <button id="zg-btn" type="button" aria-pressed="false" title="Zero-G: make messages weightless, then drag and throw them"
+        class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white/80 text-sm font-medium text-primary hover:bg-surface-container transition-all">
+        <i data-ic="orbit" data-size="18"></i><span class="hidden sm:inline">Zero-G</span>
+      </button>
+    </header>
+
+    <div id="thread-canvas" class="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-6 w-full" style="perspective:1400px" aria-live="polite">
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div id="welcome" data-tilt="2.5" class="rise glass-card border border-outline-variant rounded-2xl p-5 sm:p-6 shadow-soft">
+          <div class="flex items-center gap-5">
+            <div class="relative shrink-0 w-16 h-16 flex items-center justify-center">
+              <div class="levitate"><div class="cube-wrap" aria-hidden="true"><div class="cube"><i class="f1">J</i><i class="f2">K</i><i class="f3">L</i><i class="f4">U</i><i class="f5"></i><i class="f6"></i></div></div></div>
+              <div class="levitate-shadow absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-2 rounded-full bg-primary-container/40 blur-sm"></div>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-lg font-semibold text-primary tracking-tight">Welcome to the JKLU Information Assistant</h3>
+              <p class="text-[15px] text-secondary leading-relaxed">Ask about admissions, fees, scholarships, hostel rules, examinations, programmes or contacts. Every answer lists the documents it came from. If the documents don't contain the answer, I'll say so and point you to the right office.</p>
+            </div>
+          </div>
+        </div>
+        <div id="thread" class="space-y-8"></div>
+      </div>
+    </div>
+
+    <footer class="glass px-4 sm:px-5 py-4 border-t border-outline-variant/70 shrink-0" style="padding-bottom:max(1rem,env(safe-area-inset-bottom))">
+      <div class="max-w-4xl mx-auto space-y-2">
+        <form id="form" class="flex items-end bg-white/95 border border-outline-variant rounded-2xl focus-within:border-surface-tint focus-within:ring-4 focus-within:ring-surface-tint/15 transition-all p-1.5 shadow-soft">
+          <textarea id="input" rows="1" maxlength="600" autocomplete="off" aria-label="Your question" placeholder="Ask about JKLU admissions, fees, hostel, exams..."
+            class="flex-1 resize-none bg-transparent border-0 px-3.5 py-2.5 text-base placeholder:text-secondary/60 focus:ring-0 focus:outline-none max-h-40"></textarea>
+          <div class="flex items-center gap-2 pr-1.5 pb-1.5">
+            <span id="counter" class="font-code text-xs text-secondary select-none hidden sm:inline">0 / 600</span>
+            <button id="send" type="submit" disabled aria-label="Send" title="Send" class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center hover:bg-primary hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 shadow-soft">
+              <i data-ic="send" data-size="18"></i>
+            </button>
+          </div>
+        </form>
+        <p class="px-1 text-xs text-secondary">
+          <kbd class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant font-code text-[11px] text-on-surface">Enter</kbd> to send
+          <span class="hidden sm:inline"> • <kbd class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant font-code text-[11px] text-on-surface">Shift+Enter</kbd> for a new line</span>
+        </p>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<div id="toast" role="status" class="fixed left-1/2 -translate-x-1/2 bottom-28 max-w-[90vw] px-4 py-2.5 rounded-xl bg-on-surface text-white text-sm shadow-float opacity-0 translate-y-2 transition-all duration-300 pointer-events-none" style="z-index:60"></div>
+
+<script src="/static/vendor/three.min.js"></script>
+<script src="/static/js/icons.js"></script>
+<script src="/static/js/scene.js"></script>
+<script src="/static/js/fx.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

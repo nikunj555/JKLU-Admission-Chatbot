@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Punam Mishra
+
+- **Faculty Name**: Dr. Punam Mishra
+- **Designation**: Associate Professor
+- **Department**: Marketing & Operations
+- **Institute / School**: Institute of Management
+- **Official Profile URL**: https://jklu.edu.in/faculty/punam-mishra
+- **Verified Teaching Areas & Courses**: Marketing Management Advertising and Sales Management Consumer Behavior Customer Analytics Brand Management
+- **Research Interests**: Consumer Behavior Integrated Marketing Communications Customer Engagement and Retention Strategies Branding Customer Analytics
+- **Biography & Academic Background**: Dr. Punam Mishra is Chairperson of Ph.D. Programme at Institute of Management, JK Lakshmipat University, Jaipur. She is actively involved in teaching, training and research. She is Post-Graduate with Marketing Specialization and has been awarded Ph.D. from University of Rajasthan, Jaipur. She has about 20 years of work experience both in the industry as well as in academics. Dr. Mishra has designed and conducted training programmes/sessions on the topics related with marketing and communication skills. She has held various administrative positions like BBA Program Coordinator, Head of the Department (Marketing) and Faculty Coordinator in her academic career. She has presented her research work in number of National and International conferences organized by IIM- Indore, IIM- Ranchi, IIM- Shillong, IIM- Amritsar, IIM- Nagpur, IIM- Bodh Gaya, Management Development Institute (MDI), Institute of Management, Nirma University; Delhi School of Economics, BITS, and Universiti Sains Malaysia, Mahidol University, Thailand. She has published various research articles in International and National Journals. She has participated and organized various seminars, conferences and workshops. She has received award for her research papers at National Conference. She has been part of Editorial Committee for many publication series at FMS-IRM, Jaipur and JK Lakshmipat University, Jaipur. She is a member of Indian Society for Training and Development. Her area of interest for Research, Training and Consultancy includes Sales Management, Consumer Behavior, Integrated Marketing Communications, Customer Engagement and Retention Strategies, Branding, Target Market Strategy, and Digital Marketing. Read More
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/punam-mishra)*

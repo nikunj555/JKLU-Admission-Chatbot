@@ -1,0 +1,202 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource/instrument-serif/400.css';
+@import '@fontsource/instrument-serif/400-italic.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    background-color: #f8fafc;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html.dark body {
+    background-color: #020617;
+    color: #f8fafc;
+  }
+  ::selection {
+    background: rgba(37, 99, 235, 0.2);
+    color: #0f172a;
+  }
+  html.dark ::selection {
+    background: rgba(59, 130, 246, 0.35);
+    color: #ffffff;
+  }
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  html.dark * {
+    scrollbar-color: #334155 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e2e8f0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .glass-strong {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  }
+  .hairline {
+    border-color: #e2e8f0;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50/70 hover:text-blue-900;
+  }
+
+  /* assistant markdown styling */
+  .prose-jklu {
+    @apply text-[15px] leading-relaxed text-slate-800;
+  }
+  .prose-jklu > * + * {
+    @apply mt-3;
+  }
+  .prose-jklu h1, .prose-jklu h2, .prose-jklu h3, .prose-jklu h4 {
+    @apply font-semibold tracking-tight text-slate-900;
+  }
+  .prose-jklu h1 { @apply text-xl mt-4 mb-2; }
+  .prose-jklu h2 { @apply text-lg mt-3.5 mb-1.5; }
+  .prose-jklu h3 { @apply text-base mt-3 mb-1; }
+  .prose-jklu h4 { @apply text-[15px] mt-2.5 mb-1 text-blue-950; }
+  .prose-jklu strong {
+    @apply font-semibold text-slate-900;
+  }
+  .prose-jklu ul {
+    @apply list-disc space-y-1.5 pl-5 marker:text-blue-600;
+  }
+  .prose-jklu ol {
+    @apply list-decimal space-y-1.5 pl-5 marker:text-blue-600;
+  }
+  .prose-jklu a {
+    @apply text-blue-600 font-medium underline decoration-blue-300 underline-offset-4 hover:text-blue-800 hover:decoration-blue-600;
+  }
+  .prose-jklu code {
+    @apply rounded-md bg-slate-100 border border-slate-200 px-1.5 py-0.5 font-mono text-[13px] text-slate-800;
+  }
+  .prose-jklu blockquote {
+    @apply border-l-4 border-blue-600 bg-blue-50/50 rounded-r-lg px-4 py-2.5 text-slate-700 italic;
+  }
+  .prose-jklu hr {
+    @apply border-slate-200 my-4;
+  }
+  .table-wrap {
+    @apply overflow-x-auto rounded-xl border border-slate-200 my-3 shadow-subtle;
+  }
+  .prose-jklu table {
+    @apply w-full border-collapse text-sm bg-white;
+  }
+  .prose-jklu th {
+    @apply bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 text-left font-semibold text-slate-900;
+  }
+  .prose-jklu td {
+    @apply border-t border-slate-100 px-3.5 py-2.5 align-top text-slate-800;
+  }
+  .prose-jklu tr:hover td {
+    @apply bg-slate-50/50;
+  }
+
+  .skeleton {
+    background: linear-gradient(100deg, #f1f5f9 20%, #e2e8f0 50%, #f1f5f9 80%);
+    background-size: 200% 100%;
+    @apply animate-shimmer rounded-md;
+  }
+
+  /* Dark mode markdown styling */
+  html.dark .prose-jklu {
+    @apply text-slate-200;
+  }
+  html.dark .prose-jklu h1,
+  html.dark .prose-jklu h2,
+  html.dark .prose-jklu h3,
+  html.dark .prose-jklu h4 {
+    @apply text-white;
+  }
+  html.dark .prose-jklu strong {
+    @apply text-white;
+  }
+  html.dark .prose-jklu a {
+    @apply text-blue-400 decoration-blue-500 hover:text-blue-300 hover:decoration-blue-400;
+  }
+  html.dark .prose-jklu code {
+    @apply bg-slate-800 border-slate-700 text-slate-200;
+  }
+  html.dark .prose-jklu blockquote {
+    @apply border-blue-500 bg-blue-950/40 text-slate-300;
+  }
+  html.dark .prose-jklu hr {
+    @apply border-slate-800;
+  }
+  html.dark .table-wrap {
+    @apply border-slate-800;
+  }
+  html.dark .prose-jklu table {
+    @apply bg-slate-900;
+  }
+  html.dark .prose-jklu th {
+    @apply bg-slate-800/90 border-slate-700 text-white;
+  }
+  html.dark .prose-jklu td {
+    @apply border-slate-800 text-slate-200;
+  }
+  html.dark .prose-jklu tr:hover td {
+    @apply bg-slate-800/40;
+  }
+  html.dark .skeleton {
+    background: linear-gradient(100deg, #1e293b 20%, #334155 50%, #1e293b 80%);
+    background-size: 200% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

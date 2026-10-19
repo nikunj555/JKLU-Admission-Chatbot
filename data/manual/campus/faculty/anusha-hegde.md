@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Anusha Hegde
+
+- **Faculty Name**: Dr. Anusha Hegde
+- **Designation**: Assistant Professor
+- **Department**: Institute of Management
+- **Institute / School**: Institute of Management
+- **Official Profile URL**: https://jklu.edu.in/faculty/anusha-hegde
+- **Verified Teaching Areas & Courses**: Critical Thinking Communication
+- **Research Interests**: Feminism Subjectivity Science Fiction Posthumanism Philosophy and Mythology Ecocriticism Children’s Literature and Young Adult Fiction
+- **Biography & Academic Background**: Dr. Anusha Hegde is an Assistant Professor at the Centre for Communication and Critical Thinking, Institute of Management, JKLU, with a specialization in English literature, feminist theory, and speculative fiction. She holds a PhD from the Central University of Punjab, Bathinda (2025), where her doctoral research focused on female subjectivity, dystopian science fiction, and posthumanism. She earned her MA in English from the Central University of Karnataka — where she was awarded the Gold Medal for academic excellence — and her BA in Journalism, English, and Psychology from NMKRV College, Bengaluru. Her research spans feminism, posthumanism, science fiction, ecocriticism, philosophy, mythology, and children's and young adult literature. Dr. Hegde has published widely in peer-reviewed and indexed journals, including Prabuddha Bharata, Literary Voice (Web of Science-indexed), and the IIS University Journal of Arts, and has contributed book chapters to volumes published by Cambridge Scholars Publishing and Authorspress, among others. She has presented her work at numerous national and international conferences across India. Beyond her scholarly output, Dr. Hegde has been invited as a keynote speaker and resource person at academic seminars and lecture series, and has served as an editorial member for The Ornate Circle and a reviewer for the International Humanities Research Nexus. She also publishes creative writing, with short stories featured in The Children's Magazine since 2014. Dr. Hegde brings a rich interdisciplinary perspective to her teaching of Critical Thinking and Communication, drawing on her interests in science fiction, Indian knowledge systems, and philosophy. Read More
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/anusha-hegde)*

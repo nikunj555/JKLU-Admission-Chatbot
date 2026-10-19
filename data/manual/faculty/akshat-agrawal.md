@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Akshat Agrawal
+
+- **Faculty Name**: Dr. Akshat Agrawal
+- **Designation**: Associate Professor
+- **Department**: Computer Science and Engineering
+- **Institute / School**: Institute of Engineering & Technology
+- **Official Profile URL**: https://jklu.edu.in/faculty/akshat-agrawal
+- **Verified Teaching Areas & Courses**: Data Structure Using C Fundamentals of Machine Learning Deep Learning Programming in C Python Programming Language Artificial Neural Networks Basics of Artificial Intelligence
+- **Research Interests**: Speech Emotion Processing Meta Heuristics Algorithm Deep Learning Machine Learning Gen AI Applications
+- **Biography & Academic Background**: Dr. Akshat Agrawal holds a B.Tech in Computer Science & Engineering from Uttar Pradesh Technical University (UPTU) and an M.Tech from USICT, Guru Gobind Singh Indraprastha University (GGSIPU), New Delhi. He earned his PhD from USICT, GGSIPU, New Delhi. Prior to joining JKLU’s Institute of Engineering and Technology, he worked as a Cluster Lead at the School of Computer Science & Engineering, IILM University, Gurugram and, served as an Assistant Professor at Amity University Haryana. Dr. Agrawal has over 17 years of teaching and research experience. His primary research interests include Artificial Intelligence, Deep Learning, Artificial Neural Networks, Speech Processing, and Image Processing. He has published 67 research papers in Scopus/SCIE-indexed international journals and conferences. He has successfully guided 20 M.Tech students and supervised 42 B.Tech projects. As part of international academic collaborations, he visited the Technical University of Kosice, Slovakia, and the University of Nova, Portugal, in June 2019 under the CABCIN project (ERASMUS-funded). In May 2023, he received a scholarship to visit the Wroclaw University of Science & Technology, Wroclaw, Poland. Dr. Agrawal is actively involved in peer reviewing research papers and book chapters and has served on the programme committees of several conferences. He has edited several books from IGI Global, Elsevier, Springer Nature, Wiley publishers.
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/akshat-agrawal)*

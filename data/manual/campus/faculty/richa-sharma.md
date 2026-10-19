@@ -1,0 +1,12 @@
+# Faculty Profile: Dr. Richa Sharma
+
+- **Faculty Name**: Dr. Richa Sharma
+- **Designation**: Associate Professor
+- **Department**: Mathematics
+- **Institute / School**: Institute of Engineering & Technology
+- **Official Profile URL**: https://jklu.edu.in/faculty/richa-sharma
+- **Verified Teaching Areas & Courses**: Optimization Probability & Statistics Calculus Differential Equations Linear Algebra
+- **Research Interests**: Queueing Theory Reliability Theory Stochastic Models Probability Theory Computer Modelling
+- **Biography & Academic Background**: Dr. Richa Sharma is an Associate Professor of Mathematics in JK Lakshmipat University, Jaipur. She received her M. Sc. and Ph. D. degrees in Mathematics from Dr B. R. Ambedkar University, Agra. She was awarded for the “Best Researcher Award” at Jaipur during September 24, 2023, “Best Researcher Award” at Jaipur during September 13, 2020, “Bharat Excellence Award” at Delhi during February 24, 2019, “Leading Educationist of India Award” at Delhi during February 24, 2019, “Best Paper” at Jaipur during February 1-3, 2019, “Excellent Service Award” at Jaipur during September 10, 2017, “Young Faculty in Science Award” at Chennai during July 8, 2017, “Certificate of Merit” at Hong Kong during March 18-20, and “Best Paper Presentation Award” at Meerut during March 24-26, 2011, respectively. She was appointed as reviewer of many reputed international journals. She has fourteen years of research and teaching experience. Her research area includes queueing theory, probability theory, reliability theory, stochastic modelling and optimization. She has published fifty-seven research papers in refereed International/National journals and conference proceedings. She has also published four patents by Government of India. She has presented her research papers in forty-two International/National conferences. She has participated in twenty-four workshops/FDP/training programs and coordinated two training programs. She has presented her research work in various international conferences held at Italy; China; Hong Kong; Turkey; Thailand and Nepal. Read more
+
+*Source: Official JK Lakshmipat University Faculty Portal (https://jklu.edu.in/faculty/richa-sharma)*
