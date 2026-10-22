@@ -1,0 +1,10 @@
+{
+  "chunks_sha256": "2d7e40776f593802b58ec753822dde080501328690a12cd40caa108cf6842b57",
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+  "embedder_kind": "semantic",
+  "dim": 384,
+  "n_chunks": 3313,
+  "faiss": true,
+  "built_at": "2026-10-16T06:37:19+00:00"
+}

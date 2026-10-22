@@ -41,6 +41,9 @@ def get_agent():
             try:
                 from .agent import JKLUAgent
                 from .index import ensure_index
+                if not C.CHUNKS_PATH.is_file():
+                    from .ingest import run_ingestion
+                    run_ingestion(offline=True)
                 if not C.METADATA_PATH.is_file():
                     ensure_index()
                 _agent = JKLUAgent()
@@ -58,10 +61,26 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="JKLU University Information Agent", version="2.0", lifespan=lifespan)
-_ORIGINS = [o.strip() for o in os.environ.get(
-    "JKLU_CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000").split(",") if o.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+_raw_origins = os.environ.get("JKLU_CORS_ORIGINS", "").strip()
+if _raw_origins == "*":
+    _ORIGINS = ["*"]
+elif _raw_origins:
+    _ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+else:
+    _ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app" if _raw_origins != "*" else None,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class Turn(BaseModel):
@@ -165,7 +184,7 @@ def learning_stats():
 
 # -------------------------------------------------------------- web UI (static)
 # New React UI (frontend/dist, built from frontend/ui). The earlier plain-JS UI stays available at /classic.
-DIST_DIR = C.ROOT / "frontend" / "dist"
+DIST_DIR = C.ROOT / "frontend" / "ui" / "dist" if (C.ROOT / "frontend" / "ui" / "dist" / "index.html").is_file() else (C.ROOT / "frontend" / "dist")
 WEB_DIR = C.ROOT / "frontend" / "web"
 
 if (DIST_DIR / "index.html").is_file():

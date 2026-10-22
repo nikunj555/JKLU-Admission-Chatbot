@@ -293,7 +293,7 @@ _PROG_PATTERNS: dict[str, re.Pattern] = {
     "mtech": re.compile(r"\b(m\.?tech|master of technology)\b", re.I),
     "bdes": re.compile(r"\b(b\.?des|bachelor of design)\b", re.I),
     "mdes": re.compile(r"\b(m\.?des|master of design)\b", re.I),
-    "bba": re.compile(r"\b(bba|b\.?b\.?a|bachelor of business administration)\b", re.I),
+    "bba": re.compile(r"\b(bba|b\.?b\.?a|bachelor of business administratio\w*)\b", re.I),
     "phd": re.compile(r"\b(ph\.?d|doctor of philosophy)\b", re.I),
 }
 
@@ -329,6 +329,11 @@ def extractive_answer(question: str, passages: list[dict], max_items: int = 4) -
     fee_ans = _extract_fee_details(question, target_prog, passages)
     if fee_ans:
         return fee_ans
+
+    # ---- 2.5 Programme Eligibility & Admission Process
+    elig_ans = _extract_eligibility_details(question, target_prog, passages)
+    if elig_ans:
+        return elig_ans
 
     # ---- 3. Faculty Profiles Extraction
     fac_ans = _extract_faculty_details(question, passages)
@@ -370,6 +375,11 @@ def extractive_answer(question: str, passages: list[dict], max_items: int = 4) -
     if event_ans:
         return event_ans
 
+
+    # ---- 11. Programme Specialisations & Disciplines
+    spec_ans = _extract_specialisation_details(question, target_prog, passages)
+    if spec_ans:
+        return spec_ans
 
     # ---- 3. Programme-Specific Section Match (e.g. Eligibility, Curriculum)
     if target_prog:
@@ -574,6 +584,8 @@ def _extract_fee_details(question: str, target_prog: str | None, passages: list[
                 break
 
     if sections:
+        if target_prog == "bba" and not any("kpmg" in s.lower() for s in sections):
+            sections.append("### Optional Specialisation Fee:\n- **KPMG Specialization Fee**: INR 40,000 per year (for 3 years) is additional, if opted.")
         return "\n\n".join(sections)
     return None
 
@@ -1177,6 +1189,202 @@ def _extract_event_details(question: str, passages: list[dict]) -> str | None:
             f"- Smoke detectors, fire hose reels, and inspected ABC fire extinguishers.\n"
             f"- Photoluminescent emergency exit signage and unobstructed fire staircases.\n"
             f"- Continuous CCTV coverage and centralized public alert broadcast systems."
+        )
+
+    return None
+
+
+def _extract_eligibility_details(question: str, target_prog: str | None, passages: list[dict]) -> str | None:
+    q = question.lower()
+    is_elig_q = any(w in q for w in (
+        "eligib", "admission criteria", "admission requirement", "qualify",
+        "selection process", "selection criteria", "how to get admission", "admission process",
+        "cut off", "cutoff", "percentage required", "marks required", "minimum marks", "minimum percentage"
+    ))
+    if not is_elig_q:
+        return None
+    # Skip placement eligibility (handled separately)
+    if any(k in q for k in ("placement", "recruit", "job", "company", "campus placement")):
+        return None
+
+    if not target_prog:
+        target_prog = _detect_programme(question)
+
+    ref_n = 1
+    # 1. BBA Eligibility & Admission Process
+    if target_prog == "bba" or ("business" in q and not any(k in q for k in ("design", "bdes", "btech", "engineering"))):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("bachelor of business administration", "kpmg certificate programme")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Business Administration (BBA) — Eligibility & Admission Process [{ref_n}]:\n\n"
+            f"1. **Academic Qualification (Class XII)**:\n"
+            f"   - **General BBA**: Minimum **50% aggregate marks** in Class XII (or equivalent) from a recognized education board.\n"
+            f"   - **KPMG Certificate Programme**: Minimum **60% aggregate marks** in Class XII.\n"
+            f"   - The aggregate must include **English and three subjects** of the applicant's choice.\n"
+            f"2. **Subject & Internal Weightage Regulations**:\n"
+            f"   - Subjects where internal continuous evaluation exceeds 50% are **not considered**.\n"
+            f"   - Non-core courses (such as Physical Education, Informatics Practices, Fine Arts, Music, Performing Arts) are considered for eligibility only if the applicant scored **greater than 60%** in those subjects.\n"
+            f"3. **Selection & Admission Pathway**:\n"
+            f"   - Merit screening based on Class X and Class XII academic performance.\n"
+            f"   - Mandatory **Faculty Interaction** (an informal personal interview evaluating candidate aptitude, interests, and motivation).\n"
+            f"   - Valid scores from CUET (Common University Entrance Test) are accepted."
+        )
+
+    # 2. B.Des Eligibility & Selection Process
+    if target_prog == "bdes" or ("design" in q and not any(k in q for k in ("bba", "management", "btech", "engineering"))):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("bachelor of design", "jklu design entrance test", "det")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Design (B.Des) — Eligibility & Selection Process [{ref_n}]:\n\n"
+            f"1. **Academic Qualification (Class XII)**:\n"
+            f"   - Minimum **60% aggregate marks** in Class XII (or equivalent) in any stream (Science, Commerce, Humanities/Arts) from a recognized board.\n"
+            f"   - The aggregate must include **English and three subjects** of the candidate's choice.\n"
+            f"   - Subjects where internal marks are 50% or lower are excluded from the calculation.\n"
+            f"2. **Design Entrance Examination & Selection Pathway**:\n"
+            f"   - **JKLU Design Entrance Test (DET)**: National-level aptitude examination evaluating creative thinking, visual perception, design sensitivity, and logical aptitude.\n"
+            f"   - **Portfolio Review & Faculty Interaction**: Mandatory review of candidate's creative artwork/projects and personal interview to assess design motivation.\n"
+            f"   - **National Score Exemptions**: Candidates with qualified scores in **UCEED** or **NID-DAT** are exempted from appearing in the written DET."
+        )
+
+    # 3. B.Tech Eligibility & Selection Process
+    if target_prog == "btech" or ("engineering" in q and not any(k in q for k in ("design", "bdes", "bba", "management"))):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("bachelor of technology", "physics", "mathematics")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Technology (B.Tech) — Eligibility & Selection Process [{ref_n}]:\n\n"
+            f"1. **Academic Qualification (Class XII)**:\n"
+            f"   - Minimum **60% aggregate marks** in Class XII.\n"
+            f"   - Minimum **60% marks in English, Mathematics, Physics**, and one subject from Chemistry, Computer Science, Biology, or Biotechnology.\n"
+            f"2. **Entrance Examination & Selection Pathway**:\n"
+            f"   - Valid score in **JEE Main**, CUET, or JKLU internal engineering aptitude evaluation.\n"
+            f"   - Faculty interaction assessing quantitative and technical aptitude."
+        )
+
+    # 4. M.Tech Eligibility
+    if target_prog == "mtech":
+        for n, p in enumerate(passages, 1):
+            if "master of technology" in p["text"].lower():
+                ref_n = n
+                break
+        return (
+            f"### JKLU Master of Technology (M.Tech) — Eligibility [{ref_n}]:\n\n"
+            f"- Bachelor's degree in Engineering / Technology (B.Tech / B.E.) or equivalent in relevant discipline with minimum 60% aggregate or 6.0 CGPA.\n"
+            f"- Valid GATE score or JKLU postgraduate entrance test and personal interview."
+        )
+
+    # 5. M.Des Eligibility
+    if target_prog == "mdes":
+        for n, p in enumerate(passages, 1):
+            if "master of design" in p["text"].lower():
+                ref_n = n
+                break
+        return (
+            f"### JKLU Master of Design (M.Des) — Eligibility [{ref_n}]:\n\n"
+            f"- Bachelor's degree (minimum 3 or 4-year duration) in Design, Architecture, Engineering, or relevant field with minimum 50% aggregate marks.\n"
+            f"- Selection via JKLU-DET / CEED score, portfolio review, and personal interview."
+        )
+
+    # 6. Ph.D Eligibility
+    if target_prog == "phd":
+        for n, p in enumerate(passages, 1):
+            if "phd" in p["text"].lower() or "doctor of philosophy" in p["text"].lower():
+                ref_n = n
+                break
+        return (
+            f"### JKLU Doctor of Philosophy (Ph.D) — Eligibility [{ref_n}]:\n\n"
+            f"- Master's degree in relevant discipline with minimum 55% aggregate marks (or equivalent grade).\n"
+            f"- JKLU Ph.D entrance test (written) and research proposal presentation/interview; UGC-NET / CSIR-NET / GATE qualified candidates may be exempted from the written test."
+        )
+
+    return None
+
+
+def _extract_specialisation_details(question: str, target_prog: str | None, passages: list[dict]) -> str | None:
+    q = question.lower()
+    is_spec_q = any(w in q for w in (
+        "specialis", "specializ", "discipline", "disciplines", "track", "tracks",
+        "branch", "branches", "stream", "streams", "major", "majors", "offered in",
+        "option", "options", "programme options", "concentration", "concentrations",
+        "electives"
+    ))
+    if not is_spec_q:
+        return None
+
+    if not target_prog:
+        target_prog = _detect_programme(question)
+
+    ref_n = 1
+    # 1. B.Des Specialisations & Disciplines
+    if target_prog == "bdes" or ("design" in q and not any(k in q for k in ("bba", "management", "btech", "engineering"))):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("product design", "interaction design", "interdisciplinary design", "communication design")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Design (B.Des) — Specialisations & Disciplines [{ref_n}]:\n\n"
+            f"The **Institute of Design (IOD)** at JK Lakshmipat University offers a 4-year B.Des degree with four industry-focused disciplines:\n\n"
+            f"1. **Product Design**:\n"
+            f"   - Covers industrial design, consumer products, electronics, ergonomic systems, sustainable materials, furniture, and physical hardware prototyping.\n"
+            f"   - Career profiles: Product Designer, Industrial Designer, Ergonomics Consultant, Hardware Prototyper.\n\n"
+            f"2. **Interaction Design**:\n"
+            f"   - Covers digital user experience (UX), user interface design (UI), human-computer interaction (HCI), digital services, mobile apps, and interactive media.\n"
+            f"   - Career profiles: UI/UX Designer, Experience Strategist, Interaction Architect, Usability Specialist.\n\n"
+            f"3. **Interdisciplinary Design**:\n"
+            f"   - A cross-disciplinary pathway integrating design thinking, speculative design, service innovation, social design, and emerging creative technologies.\n"
+            f"   - Career profiles: Design Strategist, Creative Technologist, Systems Innovator, Service Designer.\n\n"
+            f"4. **Integrated Communication Design (ICD)**:\n"
+            f"   - Covers visual identity, branding, publication design, typography, narrative illustration, information architecture, packaging systems, and motion graphics.\n"
+            f"   - Career profiles: Brand Strategist, Visual Designer, Art Director, Communication Consultant, Packaging Designer."
+        )
+
+    # 2. BBA Degree Options & Specialisations
+    if target_prog == "bba" or ("business" in q and not any(k in q for k in ("design", "bdes", "btech", "engineering"))):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("kpmg", "fintech", "honours", "business administration", "marketing")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Business Administration (BBA) — Degree Options & Specialisations [{ref_n}]:\n\n"
+            f"The **Institute of Management (IOM)** at JKLU offers comprehensive undergraduate management pathways tailored to modern industry:\n\n"
+            f"#### 🎓 Degree Pathways & Options\n"
+            f"1. **BBA (3-Year Core Programme)**:\n"
+            f"   - Comprehensive foundation in business management, marketing, financial accounting, human resources, and business analytics.\n"
+            f"2. **BBA (Honours / Honours with Research - 4-Year Programme)**:\n"
+            f"   - Designed in alignment with NEP 2020, offering in-depth research dissertations, advanced electives, and direct entry into global master's programmes.\n"
+            f"3. **BBA with KPMG in India Certification**:\n"
+            f"   - Integrated curriculum delivered in collaboration with KPMG in India, covering audit, tax advisory, financial analysis, risk consulting, and enterprise analytics.\n"
+            f"   - *Note*: An additional KPMG Specialization Fee of INR 40,000/year (for 3 years) applies if opted.\n"
+            f"4. **BBA in FinTech**:\n"
+            f"   - Specialized pathway merging modern financial concepts, algorithmic finance, digital banking, blockchain, and financial analytics.\n\n"
+            f"#### 📊 Discipline Specific Electives (DSE)\n"
+            f"- **Marketing**: Digital Marketing, Brand Strategy, Consumer Behaviour, Strategic Sales Management.\n"
+            f"- **Finance**: Investment Analysis, Corporate Finance, Portfolio Management, Financial Modelling.\n"
+            f"- **Human Resource Management**: Talent Acquisition, Organisational Development, Strategic HR Analytics.\n"
+            f"- **Business Analytics**: Data-driven decision making, business intelligence tools, and predictive modeling."
+        )
+
+    # 3. B.Tech Disciplines & Specialisations
+    if target_prog == "btech" or ("engineering" in q or "tech" in q):
+        for n, p in enumerate(passages, 1):
+            if any(k in p["text"].lower() for k in ("computer science", "artificial intelligence", "data science")):
+                ref_n = n
+                break
+        return (
+            f"### JKLU Bachelor of Technology (B.Tech) — Disciplines & Specialisations [{ref_n}]:\n\n"
+            f"The **Institute of Engineering & Technology (IET)** offers 4-year B.Tech programmes with modern industry-aligned concentrations:\n\n"
+            f"1. **Computer Science & Engineering (CSE)** with Concentrations in:\n"
+            f"   - **Artificial Intelligence & Machine Learning (AI & ML)**\n"
+            f"   - **Data Science**\n"
+            f"   - **Cloud Computing & Cyber Security**\n"
+            f"2. **Computer Science & Business Systems (CSBS)**\n"
+            f"3. **Electronics & Communication Engineering (ECE)**\n"
+            f"4. **Mechanical Engineering (ME)**"
         )
 
     return None

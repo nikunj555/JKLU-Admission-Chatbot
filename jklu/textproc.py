@@ -24,7 +24,7 @@ _NORMALISE = [
     (re.compile(r"\bmasters? of technology\b", re.I), "mtech"),
     (re.compile(r"\bbachelors? of design\b", re.I), "bdes"),
     (re.compile(r"\bmasters? of design\b", re.I), "mdes"),
-    (re.compile(r"\bbachelors? of business administration\b", re.I), "bba"),
+    (re.compile(r"\bbachelors? of business administratio\w*\b", re.I), "bba"),
     (re.compile(r"\bdoctor(ate)? of philosophy\b", re.I), "phd"),
     (re.compile(r"\bph\.?\s?d\b\.?", re.I), "phd"),
     (re.compile(r"\b([bm])\.\s?(tech|des|sc|com|a|ed)\b\.?", re.I), r"\1\2"),

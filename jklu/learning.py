@@ -34,6 +34,36 @@ _MEMORY_FILE = _LEARNING_DIR / "learned_memory.json"
 _LOCK = threading.RLock()
 
 
+def _detect_programme(text: str) -> str | None:
+    t = text.lower()
+    if re.search(r"\b(b\.?des|bachelor of design|m\.?des|master of design)\b", t):
+        return "bdes"
+    if re.search(r"\b(bba|b\.?b\.?a|bachelor of business administratio\w*|management)\b", t):
+        return "bba"
+    if re.search(r"\b(b\.?tech|bachelor of technology|m\.?tech|master of technology|engineering|cse|ece)\b", t):
+        return "btech"
+    if re.search(r"\b(ph\.?d|doctor of philosophy)\b", t):
+        return "phd"
+    return None
+
+
+def _detect_topic(text: str) -> str | None:
+    t = text.lower()
+    if any(k in t for k in ("fee", "fees", "cost", "tuition", "charge")):
+        return "fees"
+    if any(k in t for k in ("eligib", "criteria", "requirement", "qualif", "how to apply", "admission requirement")):
+        return "eligibility"
+    if any(k in t for k in ("speciali", "branch", "elective", "track", "domain")):
+        return "specialisations"
+    if any(k in t for k in ("placement", "package", "ctc", "recruiter", "salary")):
+        return "placement"
+    if any(k in t for k in ("hostel", "mess", "curfew", "room")):
+        return "hostel"
+    if any(k in t for k in ("fest", "festival", "event")):
+        return "festivals"
+    return None
+
+
 @dataclass
 class MemoryEntry:
     id: str
@@ -325,9 +355,17 @@ class SelfAgenticMemory:
         q_clean = query.strip()
         q_low = q_clean.lower().strip(" ?.,")
         q_terms = self._synonym_term_set(q_clean)
+        q_prog = _detect_programme(q_clean)
+        q_topic = _detect_topic(q_clean)
 
-        # 1. Exact pattern lookup first
+        # 1. Exact pattern lookup first (with programme and topic guard)
         for entry in self.entries:
+            e_prog = _detect_programme(entry.canonical_query + " " + " ".join(entry.patterns[:3]))
+            e_topic = _detect_topic(entry.canonical_query)
+            if q_prog and e_prog and q_prog != e_prog:
+                continue
+            if q_topic and e_topic and q_topic != e_topic:
+                continue
             for pat in entry.patterns:
                 if q_low == pat.lower().strip(" ?.,"):
                     return MemoryMatch(entry=entry, similarity=1.0, tier="exact", matched_pattern=pat)
@@ -349,6 +387,13 @@ class SelfAgenticMemory:
         best_score = 0.0
 
         for entry in self.entries:
+            e_prog = _detect_programme(entry.canonical_query + " " + " ".join(entry.patterns[:3]))
+            e_topic = _detect_topic(entry.canonical_query)
+            if q_prog and e_prog and q_prog != e_prog:
+                continue
+            if q_topic and e_topic and q_topic != e_topic:
+                continue
+
             d_sim = dense_scores_by_entry.get(entry.id, 0.0)
             e_terms = self._synonym_term_set(entry.canonical_query + " " + " ".join(entry.patterns[:4]))
             overlap = len(q_terms & e_terms) / max(len(q_terms), 1) if q_terms else 0.0
@@ -396,6 +441,13 @@ class SelfAgenticMemory:
         if match:
             # Existing cluster: Add this alternative prompt phrasing if not already present
             entry = match.entry
+            raw_prog = _detect_programme(raw_q)
+            raw_topic = _detect_topic(raw_q)
+            entry_prog = _detect_programme(entry.canonical_query)
+            entry_topic = _detect_topic(entry.canonical_query)
+            if (raw_prog and entry_prog and raw_prog != entry_prog) or (raw_topic and entry_topic and raw_topic != entry_topic):
+                return False
+
             norm_q = raw_q.lower().strip(" ?.,")
             known_patterns = {p.lower().strip(" ?.,") for p in entry.patterns}
             if norm_q not in known_patterns:

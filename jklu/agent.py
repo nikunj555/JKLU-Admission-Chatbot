@@ -107,6 +107,12 @@ class JKLUAgent:
         self._placement_chunks = stat_chunks + guide_chunks
         fest_cids = ("8c614e8e4e-0005", "aa0862ce20-0003", "8c614e8e4e-0002", "8c614e8e4e-0000", "da997aecf9-0004")
         self._festival_chunks = [c for cid in fest_cids if (c := self.kb.get_chunk(cid))]
+        # Verified BBA key chunks (eligibility, fees, programmes, curriculum)
+        bba_cids = ("68a5ed8c52-0001", "7a3fc7b2fe-0001", "97de2bec53-0001", "97de2bec53-0002", "595e59e931-0000", "595e59e931-0001", "e40c447c3b-0000", "e67cb3f1c4-0000", "cee6516655-0004", "b167065a58-0002")
+        self._bba_chunks = [c for cid in bba_cids if (c := self.kb.get_chunk(cid))]
+        # Verified B.Des key chunks (eligibility, fees, specialisations, curriculum)
+        bdes_cids = ("68a5ed8c52-0000", "7a3fc7b2fe-0000", "e08a507321-0000", "97de2bec53-0001", "26d54c68ee-0000", "4c16ed4b45-0000", "367306ad64-0000", "bcd89dff70-0000", "b167065a58-0002", "cc1be9fb7a-0000")
+        self._bdes_chunks = [c for cid in bdes_cids if (c := self.kb.get_chunk(cid))]
         self.memory = SelfAgenticMemory(kb=self.kb)
         log.info("Agent ready | chunks=%d | retrieval=%s | llm=%s | self_rag_memory=%d",
                  len(self.kb.chunks), "semantic+bm25" if self.kb.semantic else "lexical+bm25",
@@ -431,16 +437,18 @@ class JKLUAgent:
         passages = expanded_passages
 
         # Ensure verified placement records are prioritized for placement/package/CTC queries
+        q_comb = (query + " " + extracted_q).lower()
+        has_placement_kw = any(w in q_comb for w in ("placement", "placements", "recruit", "recruiter", "recruiters", "job", "career", "salary", "package", "ctc", "lpa"))
         is_stat_q = any(
-            w in (query + " " + extracted_q).lower()
+            w in q_comb
             for w in ("package", "packages", "ctc", "salary", "highest", "average", "lpa", "recruiter", "recruiters", "highest ctc", "average ctc", "highest package", "average package", "rate", "percentage")
         )
         is_guide_q = any(
-            w in (query + " " + extracted_q).lower()
+            w in q_comb
             for w in ("document", "eligib", "checklist", "guideline", "form", "registration", "resume", "cv", "portfolio", "interview prep")
         )
-        is_placement_q = is_stat_q or is_guide_q or any(
-            w in (query + " " + extracted_q).lower() for w in ("placement", "placements")
+        is_placement_q = (is_stat_q and has_placement_kw) or (is_guide_q and has_placement_kw) or any(
+            w in q_comb for w in ("placement", "placements", "campus recruitment")
         )
         if is_placement_q and (self._placement_stat_chunks or self._placement_guide_chunks):
             order = (self._placement_stat_chunks + self._placement_guide_chunks) if (is_stat_q or not is_guide_q) else (self._placement_guide_chunks + self._placement_stat_chunks)
@@ -451,6 +459,46 @@ class JKLUAgent:
             ]
             other_passages = [p for p in passages if p["chunk_id"] not in order_ids]
             passages = ordered_items + other_passages
+            if "academics" not in search.get("routed", []):
+                search.setdefault("routed", []).append("academics")
+
+        # Prioritize verified BBA records for BBA-specific queries
+        is_bba_q = bool(re.search(r"\b(bba|b\.?b\.?a|bachelor of business administratio\w*|management programme)\b", q_comb))
+        if is_bba_q and hasattr(self, "_bba_chunks") and self._bba_chunks:
+            if any(k in q_comb for k in ("fee", "fees", "cost", "tuition")):
+                p_cids = ("e08a507321-0000", "97de2bec53-0001", "97de2bec53-0002", "595e59e931-0000")
+            elif any(k in q_comb for k in ("eligib", "criteria", "admission", "requirement", "qualif")):
+                p_cids = ("68a5ed8c52-0001", "7a3fc7b2fe-0001", "b167065a58-0002")
+            else:
+                p_cids = ("595e59e931-0000", "595e59e931-0001", "e40c447c3b-0000", "e67cb3f1c4-0000", "cee6516655-0004")
+            bba_top = [c for cid in p_cids if (c := self.kb.get_chunk(cid))]
+            bba_top_ids = {c["chunk_id"] for c in bba_top}
+            bba_items = [
+                dict(c, dense_score=c.get("dense_score") or 0.88, fused_score=c.get("fused_score") or 0.88)
+                for c in bba_top
+            ]
+            passages = bba_items + [p for p in passages if p["chunk_id"] not in bba_top_ids]
+            search["results"] = passages
+            if "academics" not in search.get("routed", []):
+                search.setdefault("routed", []).append("academics")
+
+        # Prioritize verified B.Des records for B.Des-specific queries
+        is_bdes_q = bool(re.search(r"\b(bdes|b\.?des|bachelor of design|design programme)\b", q_comb))
+        if is_bdes_q and hasattr(self, "_bdes_chunks") and self._bdes_chunks:
+            if any(k in q_comb for k in ("fee", "fees", "cost", "tuition")):
+                p_cids = ("e08a507321-0000", "97de2bec53-0001", "97de2bec53-0002")
+            elif any(k in q_comb for k in ("eligib", "criteria", "admission", "requirement", "qualif")):
+                p_cids = ("68a5ed8c52-0000", "7a3fc7b2fe-0000", "b167065a58-0002", "cc1be9fb7a-0000")
+            else:
+                p_cids = ("26d54c68ee-0000", "4c16ed4b45-0000", "367306ad64-0000", "bcd89dff70-0000", "29d2327c3a-0000")
+            bdes_top = [c for cid in p_cids if (c := self.kb.get_chunk(cid))]
+            bdes_top_ids = {c["chunk_id"] for c in bdes_top}
+            bdes_items = [
+                dict(c, dense_score=c.get("dense_score") or 0.88, fused_score=c.get("fused_score") or 0.88)
+                for c in bdes_top
+            ]
+            passages = bdes_items + [p for p in passages if p["chunk_id"] not in bdes_top_ids]
+            search["results"] = passages
             if "academics" not in search.get("routed", []):
                 search.setdefault("routed", []).append("academics")
 
