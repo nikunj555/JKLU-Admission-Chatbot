@@ -56,7 +56,9 @@ def get_agent():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    get_agent()
+    # Initialize agent in a background thread so Uvicorn binds the port immediately
+    # (prevents cloud host port scan timeouts while the embedding model initializes)
+    threading.Thread(target=get_agent, daemon=True, name="agent-init").start()
     yield
 
 

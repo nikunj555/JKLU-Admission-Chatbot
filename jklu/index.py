@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import heapq
 import math
+import os
 import re
 import time
 import zlib
@@ -92,13 +93,18 @@ def load_embedder(model_name: str | None = None, allow_semantic: bool = True):
         return _EMBEDDER_CACHE[key]
     emb = None
     if allow_semantic:
-        try:
-            log.info("Loading embedding model: %s", model_name)
-            emb = SemanticEmbedder(model_name)
-        except Exception as exc:
-            log.warning("Semantic model unavailable (%s: %s). Falling back to lexical embeddings. "
-                        "Install `sentence-transformers` and connect to the internet once to download "
-                        "the model for full semantic search.", type(exc).__name__, str(exc)[:100])
+        if os.environ.get("JKLU_LIGHTWEIGHT_MODE", "").lower() in ("1", "true", "yes"):
+            log.info("JKLU_LIGHTWEIGHT_MODE enabled: using HashingEmbedder (lexical) to minimize RAM usage.")
+            emb = HashingEmbedder()
+        else:
+            try:
+                log.info("Loading embedding model: %s", model_name)
+                emb = SemanticEmbedder(model_name)
+            except (Exception, MemoryError) as exc:
+                log.warning("Semantic model unavailable or out of memory (%s: %s). Falling back to lexical embeddings. "
+                            "Install `sentence-transformers` and connect to the internet once to download "
+                            "the model for full semantic search.", type(exc).__name__, str(exc)[:100])
+                emb = HashingEmbedder()
     if emb is None:
         emb = HashingEmbedder()
     _EMBEDDER_CACHE[key] = emb
