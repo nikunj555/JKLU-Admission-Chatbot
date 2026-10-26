@@ -7046,7 +7046,8 @@
     "id": "mem_7641000",
     "canonical_query": "What are the eligibility criteria for B Tech CSE",
     "patterns": [
-      "What are the eligibility criteria for B.Tech CSE?"
+      "What are the eligibility criteria for B.Tech CSE?",
+      "What is the eligibility for B.Tech in CSE at JKLU?"
     ],
     "category": "admission",
     "chunk_ids": [
@@ -7085,7 +7086,7 @@
       }
     ],
     "confidence": 0.737,
-    "hits": 1,
+    "hits": 2,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -7475,7 +7476,7 @@
       -0.014995928853750229
     ],
     "created_at": 1792257641,
-    "updated_at": 1792257641
+    "updated_at": 1793021390
   },
   {
     "id": "mem_7645000",
@@ -13248,7 +13249,7 @@
       }
     ],
     "confidence": 0.764,
-    "hits": 15,
+    "hits": 19,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -13638,7 +13639,7 @@
       -0.05678090825676918
     ],
     "created_at": 1792257823,
-    "updated_at": 1793020127
+    "updated_at": 1793021677
   },
   {
     "id": "mem_7830000",
@@ -46675,7 +46676,7 @@
       }
     ],
     "confidence": 0.752,
-    "hits": 7,
+    "hits": 9,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -47065,7 +47066,7 @@
       -0.006825817283242941
     ],
     "created_at": 1792258338,
-    "updated_at": 1793020122
+    "updated_at": 1793021673
   },
   {
     "id": "mem_8343000",
@@ -51420,7 +51421,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 7,
+    "hits": 9,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -51810,7 +51811,7 @@
       -0.05252756550908089
     ],
     "created_at": 1792409548,
-    "updated_at": 1793020121
+    "updated_at": 1793021672
   },
   {
     "id": "mem_9554000",
@@ -51855,7 +51856,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 6,
+    "hits": 8,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -52245,7 +52246,7 @@
       -0.04385566711425781
     ],
     "created_at": 1792409554,
-    "updated_at": 1793020122
+    "updated_at": 1793021673
   },
   {
     "id": "mem_9568000",
@@ -52290,7 +52291,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 6,
+    "hits": 8,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -52680,7 +52681,7 @@
       -0.000965384126175195
     ],
     "created_at": 1792409568,
-    "updated_at": 1793020123
+    "updated_at": 1793021675
   },
   {
     "id": "mem_9933000",
@@ -54045,7 +54046,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 5,
+    "hits": 7,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -54435,7 +54436,7 @@
       0.004762094467878342
     ],
     "created_at": 1792432740,
-    "updated_at": 1793020122
+    "updated_at": 1793021674
   },
   {
     "id": "mem_2745000",
@@ -54467,7 +54468,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 5,
+    "hits": 7,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -54857,7 +54858,7 @@
       0.003659668378531933
     ],
     "created_at": 1792432745,
-    "updated_at": 1793020123
+    "updated_at": 1793021674
   },
   {
     "id": "mem_2999000",

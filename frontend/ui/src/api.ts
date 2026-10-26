@@ -1,6 +1,7 @@
 import type { CategoryInfo, ChatRequest, ChatResponse, ChatStatus, Contact, Health, Source, Suggestion } from './types';
 
-const BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '').replace(/\/$/, '');
+const DEFAULT_BASE = import.meta.env.DEV ? '' : 'https://jklu-admission-chatbot.onrender.com';
+const BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || DEFAULT_BASE).replace(/\/$/, '');
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 const CHAT_TIMEOUT_MS = 90_000;
 

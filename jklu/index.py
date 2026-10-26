@@ -38,16 +38,34 @@ class SemanticEmbedder:
     kind = "semantic"
 
     def __init__(self, model_name: str):
-        from sentence_transformers import SentenceTransformer  # heavy import kept lazy
         self.name = model_name
+        self._backend = "sentence-transformers"
+        # 1. Try fastembed first: ultra-lightweight ONNX runtime (~60MB RAM vs ~550MB for PyTorch)
+        try:
+            from fastembed import TextEmbedding
+            self.model = TextEmbedding(model_name)
+            self._backend = "fastembed"
+            self.dim = getattr(self.model, "embedding_size", 384)
+            log.info("Loaded lightweight FastEmbed (ONNX) embedder: %s (dim=%d)", model_name, self.dim)
+            return
+        except Exception as exc:
+            log.info("FastEmbed not available (%s), falling back to sentence-transformers", exc)
+
+        # 2. Fall back to sentence-transformers if fastembed is not installed
+        from sentence_transformers import SentenceTransformer  # heavy import kept lazy
         self.model = SentenceTransformer(model_name)
         try:
             self.model.max_seq_length = min(int(self.model.max_seq_length or 256), 256)
         except Exception:
             pass
-        self.dim = int(self.model.get_sentence_embedding_dimension())
+        self.dim = int(getattr(self.model, "get_embedding_dimension", getattr(self.model, "get_sentence_embedding_dimension", lambda: 384))())
 
     def encode(self, texts: list[str], batch_size: int = 32, progress: bool = False) -> np.ndarray:
+        if not texts:
+            return np.zeros((0, self.dim), dtype="float32")
+        if self._backend == "fastembed":
+            vectors = list(self.model.embed(texts, batch_size=batch_size))
+            return np.ascontiguousarray(vectors, dtype="float32")
         emb = self.model.encode(texts, batch_size=batch_size, show_progress_bar=progress,
                                 normalize_embeddings=True, convert_to_numpy=True)
         return np.ascontiguousarray(emb, dtype="float32")
