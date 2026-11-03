@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 from typing import List, Literal, Optional
@@ -19,7 +20,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -40,12 +41,17 @@ def get_agent():
         if _agent is None:
             try:
                 from .agent import JKLUAgent
-                from .index import ensure_index
-                if not C.CHUNKS_PATH.is_file():
+                from .index import ensure_index, index_is_current
+                chunks_ok = C.CHUNKS_PATH.is_file() and C.CHUNKS_PATH.stat().st_size > 100
+                if not chunks_ok:
+                    log.warning("chunks.jsonl missing or empty - attempting emergency offline ingestion...")
                     from .ingest import run_ingestion
                     run_ingestion(offline=True)
-                if not C.METADATA_PATH.is_file():
-                    ensure_index()
+                    if not C.CHUNKS_PATH.is_file() or C.CHUNKS_PATH.stat().st_size == 0:
+                        raise RuntimeError("chunks.jsonl is empty - run the ingestion phase first (python scripts/prepare_kb.py)")
+                if not index_is_current(want_semantic=True):
+                    log.info("Vector index not current - building index...")
+                    ensure_index(force=False, allow_semantic=True)
                 _agent = JKLUAgent()
                 _load_error = None
             except Exception as exc:
@@ -56,9 +62,17 @@ def get_agent():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize agent in a background thread so Uvicorn binds the port immediately
-    # (prevents cloud host port scan timeouts while the embedding model initializes)
-    threading.Thread(target=get_agent, daemon=True, name="agent-init").start()
+    # If the knowledge base was pre-built, load synchronously so the chatbot is instantly ready.
+    # Otherwise run in background thread so Uvicorn binds port quickly to avoid cloud provider timeouts.
+    chunks_ok = C.CHUNKS_PATH.is_file() and C.CHUNKS_PATH.stat().st_size > 100
+    faiss_ok = C.FAISS_PATH.is_file() or C.FAISS_PATH.with_name(C.FAISS_PATH.name + ".npy").is_file()
+    if chunks_ok and faiss_ok:
+        try:
+            get_agent()
+        except Exception as exc:
+            log.error("Startup agent load failed: %s", exc)
+    else:
+        threading.Thread(target=get_agent, daemon=True, name="agent-init").start()
     yield
 
 
@@ -127,7 +141,69 @@ def chat(req: ChatRequest):
     if not agent:
         raise HTTPException(503, _load_error or "knowledge base not ready - run `python run.py`")
     history = [(t.model_dump() if hasattr(t, 'model_dump') else t.dict()) for t in req.history][-C.MAX_HISTORY_TURNS:] if req.history else None
-    return agent.ask(req.question, category=req.category, top_k=req.top_k, history=history)
+    res = agent.ask(req.question, category=req.category, top_k=req.top_k, history=history)
+    if "timings" in res:
+        t_ser = time.perf_counter()
+        _ = json.dumps(res, default=str)
+        res["timings"]["response_serialization_ms"] = round((time.perf_counter() - t_ser) * 1000, 2)
+    return res
+
+
+@app.post("/chat/stream")
+@app.post("/api/chat/stream")
+async def chat_stream(req: ChatRequest):
+    agent = get_agent()
+    if not agent:
+        raise HTTPException(503, _load_error or "knowledge base not ready - run `python run.py`")
+
+    history = [(t.model_dump() if hasattr(t, 'model_dump') else t.dict()) for t in req.history][-C.MAX_HISTORY_TURNS:] if req.history else None
+
+    async def event_generator():
+        # 1. status event
+        yield f"event: status\ndata: {json.dumps({'message': 'Searching verified JKLU records…'})}\n\n"
+
+        # Ask agent
+        res = agent.ask(req.question, category=req.category, top_k=req.top_k, history=history)
+
+        # 2. evidence event
+        evidence_items = []
+        for s in (res.get("sources") or [])[:5]:
+            is_live = s.get("source_type") == "live" or s.get("is_live")
+            evidence_items.append({
+                "n": s.get("n", 1),
+                "title": s.get("title") or "Verified Document",
+                "url": s.get("url") or s.get("source_url"),
+                "snippet": s.get("snippet") or (s.get("text") or "")[:180],
+                "score": s.get("score") or s.get("similarity_score", 1.0),
+                "tag": "Live from jklu.edu.in" if is_live else "Verified document",
+            })
+        yield f"event: evidence\ndata: {json.dumps({'evidence': evidence_items})}\n\n"
+
+        # 3. token stream event
+        full_answer = res.get("answer", "")
+        # Stream answer in chunks of words for perceived speed
+        words = re.findall(r"\S+|\s+", full_answer)
+        chunk_buf = []
+        for w in words:
+            chunk_buf.append(w)
+            if len(chunk_buf) >= 4 or "\n" in w:
+                yield f"event: token\ndata: {json.dumps({'token': ''.join(chunk_buf)})}\n\n"
+                chunk_buf = []
+        if chunk_buf:
+            yield f"event: token\ndata: {json.dumps({'token': ''.join(chunk_buf)})}\n\n"
+
+        # 4. done event
+        done_payload = dict(res)
+        done_payload["response_serialization_ms"] = 0.5
+        yield f"event: done\ndata: {json.dumps(done_payload, default=str)}\n\n"
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "text/event-stream",
+        "X-Accel-Buffering": "no",
+    }
+    return StreamingResponse(event_generator(), media_type="text/event-stream", headers=headers)
 
 
 @app.post("/search")

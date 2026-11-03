@@ -1,0 +1,131 @@
+{
+  "schools": {
+    "Institute of Engineering & Technology": [
+      "iet",
+      "engineering",
+      "school of engineering",
+      "btech",
+      "b.tech",
+      "mtech",
+      "m.tech",
+      "engineering faculty"
+    ],
+    "Institute of Management": [
+      "im",
+      "management",
+      "business",
+      "school of business",
+      "bba",
+      "mba",
+      "management faculty",
+      "business faculty"
+    ],
+    "Institute of Design": [
+      "iod",
+      "design",
+      "school of design",
+      "bdes",
+      "b.des",
+      "design faculty"
+    ]
+  },
+  "departments": {
+    "Computer Science and Engineering": [
+      "cse",
+      "computer science",
+      "computer science and engineering",
+      "computer science & engineering",
+      "cs",
+      "btech cse",
+      "b.tech cse",
+      "ai",
+      "ai & ml",
+      "ai and ml",
+      "artificial intelligence",
+      "data science",
+      "cyber security",
+      "cybersecurity",
+      "software engineering"
+    ],
+    "Electronics & Communication Engineering": [
+      "ece",
+      "electronics",
+      "electronics & communication",
+      "electronics and communication",
+      "electronics & communication engineering",
+      "electronics and communication engineering",
+      "vlsi",
+      "embedded systems"
+    ],
+    "Electrical and Electronic Engineering": [
+      "eee",
+      "electrical",
+      "electrical engineering",
+      "electrical and electronics engineering"
+    ],
+    "Mathematics": [
+      "math",
+      "maths",
+      "mathematics",
+      "applied mathematics",
+      "applied sciences and mathematics"
+    ],
+    "Chemistry & Environment": [
+      "chemistry",
+      "environmental science",
+      "chemistry & environment",
+      "chemistry and environment"
+    ],
+    "Centre for Communication and Critical Thinking (CCCT)": [
+      "ccct",
+      "communication",
+      "critical thinking",
+      "english",
+      "soft skills",
+      "humanities",
+      "centre for communication and critical thinking"
+    ],
+    "Management": [
+      "management",
+      "business",
+      "mba",
+      "bba",
+      "marketing",
+      "finance",
+      "human resources",
+      "hr",
+      "operations",
+      "entrepreneurship",
+      "finance and accounts",
+      "marketing & operations",
+      "economics and entrepreneurship",
+      "organizational behaviour & hr",
+      "institute of management"
+    ],
+    "Design": [
+      "design",
+      "bdes",
+      "b.des",
+      "product design",
+      "interaction design",
+      "communication design",
+      "interdisciplinary design",
+      "ui/ux",
+      "ux",
+      "institute of design"
+    ]
+  },
+  "programmes": {
+    "btech": "Computer Science and Engineering",
+    "b.tech": "Computer Science and Engineering",
+    "btech cse": "Computer Science and Engineering",
+    "b.tech cse": "Computer Science and Engineering",
+    "mtech": "Computer Science and Engineering",
+    "m.tech": "Computer Science and Engineering",
+    "bba": "Management",
+    "mba": "Management",
+    "bdes": "Design",
+    "b.des": "Design"
+  }
+}
+

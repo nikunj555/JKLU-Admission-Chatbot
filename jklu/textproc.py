@@ -355,6 +355,7 @@ _TOKEN = re.compile(r"[a-z0-9]+")
 _PROTECTED = frozenset({
     "bdes", "mdes", "btech", "mtech", "bba", "phd", "ces", "ece", "eee", "cse",
     "wifi", "naac", "nirf", "sgpa", "cgpa", "nata", "uceed", "cuet", "gate", "jee", "det",
+    "aerospace", "civil", "mechanical", "chemical", "aeronautical", "biotechnology", "pharmacy", "medical", "agriculture",
 })
 
 

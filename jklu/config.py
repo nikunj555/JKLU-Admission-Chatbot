@@ -120,8 +120,8 @@ MIN_CHUNK_WORDS = 12
 
 # ------------------------------------------------------------- retrieval
 EMBED_MODEL = os.environ.get("JKLU_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-TOP_K = _env_int("JKLU_TOP_K", 8)
-CANDIDATES = _env_int("JKLU_CANDIDATES", 60)         # per retriever before fusion
+TOP_K = _env_int("JKLU_TOP_K", 4)
+CANDIDATES = _env_int("JKLU_CANDIDATES", 30)         # per retriever before fusion
 RRF_K = 60
 W_DENSE = _env_float("JKLU_W_DENSE", 1.0)
 W_SPARSE = _env_float("JKLU_W_SPARSE", 1.0)
@@ -137,7 +137,7 @@ CLARIFY_COVERAGE = _env_float("JKLU_CLARIFY_COVERAGE", 0.34)
 
 # ------------------------------------------------------------------ LLM
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "groq").lower()   # groq|auto|openai|anthropic|gemini|ollama|openrouter|custom|none
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_BASE_URL = os.environ.get("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
@@ -151,13 +151,23 @@ OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.
 CUSTOM_LLM_BASE_URL = os.environ.get("CUSTOM_LLM_BASE_URL", "")
 CUSTOM_LLM_MODEL = os.environ.get("CUSTOM_LLM_MODEL", "")
 LLM_TIMEOUT = _env_int("JKLU_LLM_TIMEOUT", 8)
-LLM_MAX_TOKENS = _env_int("JKLU_LLM_MAX_TOKENS", 700)
-MAX_HISTORY_TURNS = _env_int("JKLU_MAX_HISTORY_TURNS", 8)
+LLM_MAX_TOKENS = _env_int("JKLU_LLM_MAX_TOKENS", _env_int("LLM_MAX_TOKENS", 400))
+MAX_HISTORY_TURNS = _env_int("JKLU_MAX_HISTORY_TURNS", _env_int("MAX_HISTORY_TURNS", 4))
 
 # ------------------------------------------------------------ servers
 API_HOST = os.environ.get("JKLU_API_HOST", "127.0.0.1")
-API_PORT = _env_int("JKLU_API_PORT", 8000)
+API_PORT = _env_int("PORT", _env_int("JKLU_API_PORT", 8000))
 UI_PORT = _env_int("JKLU_UI_PORT", 8501)
+
+# -------------------------------------------------------- Tier 2: Live Fetch
+LIVE_FETCH_ENABLED = os.environ.get("LIVE_FETCH_ENABLED", "true").lower() in ("1", "true", "yes")
+LIVE_FETCH_THRESHOLD = _env_float("LIVE_FETCH_THRESHOLD", 0.65)
+CACHE_TTL = _env_int("CACHE_TTL", 3600 * 12)  # 12 hours TTL for live web cache
+LIVE_FETCH_TIMEOUT = _env_float("LIVE_FETCH_TIMEOUT", 2.5)
+LIVE_MAX_PAGES = _env_int("LIVE_MAX_PAGES", 2)
+LIVE_MAX_BYTES = 1024 * 1024  # 1 MB max per page
+SITE_MAP_PATH = ROOT / "data" / "manual" / "site_map.json"
+UNANSWERED_LOG_PATH = ROOT / "data" / "learning" / "unanswered.jsonl"
 
 UNIVERSITY_NAME = "JK Lakshmipat University (JKLU)"
 CONTACT_PAGE = "https://jklu.edu.in/contact-us"

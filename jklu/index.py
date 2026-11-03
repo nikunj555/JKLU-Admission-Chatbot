@@ -358,10 +358,19 @@ class KnowledgeBase:
     def search(self, query: str, top_k: int = C.TOP_K, category: str | None = None,
                mode: str = "hybrid") -> dict:
         """Return {'results': [...], 'routed': [...], 'semantic': bool, ...}."""
+        t_search_start = time.perf_counter()
+        timings = {
+            "query_embedding_ms": 0.0,
+            "faiss_search_ms": 0.0,
+            "bm25_search_ms": 0.0,
+            "rrf_fusion_ms": 0.0,
+            "retrieval_total_ms": 0.0,
+        }
         query = (query or "").strip()
         n = len(self.chunks)
-        out = {"results": [], "routed": [], "semantic": self.semantic, "terms": []}
+        out = {"results": [], "routed": [], "semantic": self.semantic, "terms": [], "timings": timings}
         if not query or n == 0:
+            timings["retrieval_total_ms"] = round((time.perf_counter() - t_search_start) * 1000, 2)
             return out
         terms = T.content_terms(query)
         out["terms"] = terms
@@ -378,8 +387,12 @@ class KnowledgeBase:
         dense_cos: dict[int, float] = {}
         qvec = None
         if mode in ("hybrid", "dense") and self.embedder is not None:
+            t0 = time.perf_counter()
             qvec = self.embedder.encode([query])[0]
+            timings["query_embedding_ms"] = round((time.perf_counter() - t0) * 1000, 2)
+            t1 = time.perf_counter()
             sc, ids = self.vi.search(qvec, cand_k)
+            timings["faiss_search_ms"] = round((time.perf_counter() - t1) * 1000, 2)
             r = 0
             for s, i in zip(sc, ids):
                 if i < 0 or (allowed is not None and not allowed[i]):
@@ -392,6 +405,7 @@ class KnowledgeBase:
         sparse_rank: dict[int, int] = {}
         sparse_score: dict[int, float] = {}
         if mode in ("hybrid", "sparse", "keyword"):
+            t2 = time.perf_counter()
             exp = T.expand_terms(terms)
             # add bigrams from the original query for phrase matching in the BM25 index
             q_bigrams = [f"{a}__{b}" for a, b in zip(terms, terms[1:])]
@@ -427,7 +441,9 @@ class KnowledgeBase:
                 sparse_score[int(i)] = s
                 if r >= C.CANDIDATES:
                     break
+            timings["bm25_search_ms"] = round((time.perf_counter() - t2) * 1000, 2)
 
+        t3 = time.perf_counter()
         fused: dict[int, float] = {}
         wd = C.W_DENSE if self.semantic else C.W_DENSE * 0.6      # lexical embeddings are weaker
         for i, rk in dense_rank.items():
@@ -444,6 +460,7 @@ class KnowledgeBase:
             fused[i] *= f
 
         ordered = [i for i, _ in heapq.nlargest(max(top_k * 6, 30), fused.items(), key=lambda kv: kv[1])]
+        timings["rrf_fusion_ms"] = round((time.perf_counter() - t3) * 1000, 2)
         per_doc: dict[str, int] = {}
         results: list[dict] = []
         for i in ordered:
@@ -465,6 +482,7 @@ class KnowledgeBase:
             if len(results) >= top_k:
                 break
         out["results"] = results
+        timings["retrieval_total_ms"] = round((time.perf_counter() - t_search_start) * 1000, 2)
         return out
 
 

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { USE_MOCK } from './api';
-import { AppSidebar, QUICK_ACCESS_TOPICS } from './components/AppSidebar';
+import { AppSidebar } from './components/AppSidebar';
 import { BrandMark } from './components/BrandMark';
 import { ChatWindow } from './components/ChatWindow';
 import type { ComposerHandle } from './components/ChatComposer';
@@ -170,29 +170,6 @@ export default function App() {
             </button>
           </div>
         </header>
-
-        {/* Quick-Access Strip in Active Chat */}
-        {hasChat && (
-          <div
-            className="flex items-center gap-1.5 overflow-x-auto border-b border-slate-200 bg-slate-50/90 dark:border-slate-800 dark:bg-slate-900/90 backdrop-blur-sm px-4 py-1.5 scrollbar-none"
-            aria-label="Quick admission shortcuts"
-          >
-            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide shrink-0 mr-1 hidden sm:inline">
-              Quick access:
-            </span>
-            {QUICK_ACCESS_TOPICS.map(({ label, q }) => (
-              <button
-                key={label}
-                type="button"
-                disabled={chat.loading}
-                onClick={() => send(q)}
-                className="shrink-0 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-900 dark:hover:border-blue-600 dark:hover:bg-slate-700 dark:hover:text-white transition-colors disabled:opacity-50"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Mock Notice */}
         {USE_MOCK && (

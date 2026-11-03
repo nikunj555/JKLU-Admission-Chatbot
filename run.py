@@ -49,10 +49,11 @@ PACKAGES = {
     "lxml": ("lxml", False),
     "faiss": ("faiss-cpu", False),
     "sklearn": ("scikit-learn", False),
-    "sentence_transformers": ("sentence-transformers", False),
+    "fastembed": ("fastembed", False),
+    "onnxruntime": ("onnxruntime", False),
     "fastapi": ("fastapi", False),
     "uvicorn": ("uvicorn", False),
-    "streamlit": ("streamlit", False),
+    "httpx": ("httpx", False),
 }
 
 
@@ -167,6 +168,8 @@ def main() -> int:
     ap.add_argument("--calibrate", action="store_true", help="tune evidence thresholds on the test set")
     ap.add_argument("--cli", action="store_true", help="chat in the terminal")
     ap.add_argument("--api", action="store_true", help="API only")
+    ap.add_argument("--serve", action="store_true", help="production API server on $PORT")
+    ap.add_argument("--prepare", action="store_true", help="build and validate knowledge base and exit")
     ap.add_argument("--no-ui", action="store_true", help="prepare data/index and exit")
     ap.add_argument("--streamlit", action="store_true", help="use the Streamlit UI instead of the web UI")
     ap.add_argument("--campus", action="store_true", help="ingest external campus documents and rebuild index")
@@ -184,6 +187,11 @@ def main() -> int:
 
     from jklu import config as C
     from jklu.utils import log
+
+    if args.prepare:
+        from scripts.prepare_kb import prepare_knowledge_base
+        ok = prepare_knowledge_base()
+        return 0 if ok else 1
 
     if args.selftest:
         import unittest
@@ -221,6 +229,13 @@ def main() -> int:
         return 0
 
     # ---- Phase 3: serve ----------------------------------------------------------
+    if args.serve:
+        import uvicorn
+        port = int(os.environ.get("PORT") or C.API_PORT)
+        log.info("Starting production Uvicorn server on port %d...", port)
+        uvicorn.run("jklu.api:app", host="0.0.0.0", port=port, log_level="info", workers=1)
+        return 0
+
     if args.cli:
         from jklu.agent import JKLUAgent
         run_cli(JKLUAgent())

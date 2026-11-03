@@ -268,5 +268,109 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.get("/").status_code, 200)
 
 
+class FacultyAndChipTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from jklu.agent import JKLUAgent
+        from jklu.api import app
+        from starlette.testclient import TestClient
+        cls.agent = JKLUAgent()
+        cls.client = TestClient(app)
+
+    def test_faculty_index_structure(self):
+        fac = self.agent.faculty_index
+        self.assertGreater(fac.get("total_faculty", 0), 60)
+        self.assertIn("Computer Science and Engineering", fac.get("by_department", {}))
+        self.assertIn("Management", fac.get("by_department", {}))
+        self.assertIn("Design", fac.get("by_department", {}))
+
+    def test_cse_faculty_complete_list(self):
+        r = self.agent.ask("who are the CSE faculty?")
+        self.assertEqual(r["status"], "answer")
+        self.assertEqual(r["provider"], "faculty_index")
+        self.assertIn("Computer Science and Engineering", r["answer"])
+        self.assertIn("verified faculty members", r["answer"])
+        self.assertGreaterEqual(len(r["sources"]), 15)
+        self.assertIn("Show remaining faculty", r.get("suggestions", []))
+
+    def test_btech_and_cse_professors(self):
+        r1 = self.agent.ask("list all b.tech faculty")
+        self.assertEqual(r1["status"], "answer")
+        self.assertEqual(r1["provider"], "faculty_index")
+
+        r2 = self.agent.ask("btech cse professors")
+        self.assertEqual(r2["status"], "answer")
+        self.assertEqual(r2["provider"], "faculty_index")
+
+    def test_bba_and_bdes_faculty(self):
+        r_bba = self.agent.ask("bba faculty")
+        self.assertEqual(r_bba["status"], "answer")
+        self.assertEqual(r_bba["provider"], "faculty_index")
+        self.assertIn("Management", r_bba["answer"])
+
+        r_bdes = self.agent.ask("b.des faculty")
+        self.assertEqual(r_bdes["status"], "answer")
+        self.assertEqual(r_bdes["provider"], "faculty_index")
+        self.assertIn("Design", r_bdes["answer"])
+
+    def test_hod_of_cse(self):
+        r = self.agent.ask("who is the hod of cse")
+        self.assertEqual(r["status"], "answer")
+        self.assertIn("Sinhal", r["answer"])
+        self.assertEqual(r["provider"], "faculty_index")
+
+    def test_named_person_profile(self):
+        r = self.agent.ask("tell me about Dr. Amit Sinhal")
+        self.assertEqual(r["status"], "answer")
+        self.assertEqual(r["provider"], "faculty_index")
+        self.assertIn("Amit Kumar Sinhal", r["answer"])
+        self.assertIn("Professor", r["answer"])
+
+    def test_unknown_department_honest_fallback(self):
+        r = self.agent.ask("who are the aerospace faculty?")
+        self.assertEqual(r["status"], "escalate")
+        self.assertIn("Aerospace Engineering", r["answer"])
+
+    def test_ambiguous_faculty_clarifying(self):
+        r = self.agent.ask("faculty")
+        self.assertEqual(r["status"], "clarify")
+        self.assertIn("CSE Faculty", r.get("suggestions", []))
+
+    def test_faculty_pagination_follow_up(self):
+        history = [
+            {"role": "user", "content": "who are the cse faculty?"},
+            {"role": "assistant", "content": "Computer Science and Engineering has 20 verified faculty members."}
+        ]
+        r = self.agent.ask("show remaining faculty", history=history)
+        self.assertEqual(r["status"], "answer")
+        self.assertEqual(r["provider"], "faculty_index")
+        self.assertIn("Remaining verified faculty members", r["answer"])
+
+    def test_horizontal_chip_bar_removed_from_app_tsx(self):
+        from pathlib import Path
+        app_tsx = Path("frontend/ui/src/App.tsx").read_text(encoding="utf-8")
+        self.assertNotIn("Quick access:", app_tsx)
+        self.assertNotIn("QUICK_ACCESS_TOPICS.map", app_tsx)
+
+    def test_sidebar_chips_audit(self):
+        from scripts.audit_chips import extract_sidebar_chips
+        chips = extract_sidebar_chips()
+        self.assertEqual(len(chips), 8)
+        for c in chips:
+            r = self.agent.ask(c["q"])
+            self.assertEqual(r["status"], "answer", f"Failed on chip: {c['label']}")
+            self.assertGreater(len(r.get("sources", [])), 0)
+
+    def test_chat_stream_endpoint(self):
+        res = self.client.post("/api/chat/stream", json={"question": "who are the cse faculty?"})
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("text/event-stream", res.headers.get("content-type", ""))
+        body = res.text
+        self.assertIn("event: status", body)
+        self.assertIn("event: evidence", body)
+        self.assertIn("event: token", body)
+        self.assertIn("event: done", body)
+
+
 if __name__ == "__main__":
     unittest.main()

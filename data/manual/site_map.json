@@ -1,0 +1,91 @@
+{
+  "admissions": [
+    {
+      "url": "https://jklu.edu.in/admissions/",
+      "title": "JKLU Admissions 2026-27 Overview & Guidelines",
+      "category": "admission",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/admissions/eligibility/",
+      "title": "JKLU Admission Eligibility Criteria",
+      "category": "admission",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/admissions/fee-structure/",
+      "title": "JKLU Fee Structure & Living Expenses",
+      "category": "fees",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/admissions/scholarships/",
+      "title": "JKLU Merit Scholarships & Financial Aid",
+      "category": "scholarships",
+      "priority": 1
+    }
+  ],
+  "programmes": [
+    {
+      "url": "https://jklu.edu.in/programmes/b-tech/",
+      "title": "Bachelor of Technology (B.Tech) Programmes & Specializations",
+      "category": "academics",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/programmes/bba/",
+      "title": "Bachelor of Business Administration (BBA) Curriculum & Tracks",
+      "category": "academics",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/programmes/b-des/",
+      "title": "Bachelor of Design (B.Des) Disciplines & Studio Curriculum",
+      "category": "academics",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/programmes/m-tech/",
+      "title": "Master of Technology (M.Tech) in Data Science & AI",
+      "category": "academics",
+      "priority": 2
+    },
+    {
+      "url": "https://jklu.edu.in/programmes/phd/",
+      "title": "Doctoral Studies (Ph.D) Research Guidelines",
+      "category": "academics",
+      "priority": 2
+    }
+  ],
+  "placements": [
+    {
+      "url": "https://jklu.edu.in/placements/",
+      "title": "JKLU Placements, Highest CTC, Top Recruiters & Statistics",
+      "category": "academics",
+      "priority": 1
+    }
+  ],
+  "campus_life": [
+    {
+      "url": "https://jklu.edu.in/campus-life/",
+      "title": "JKLU Campus Facilities, Hostels, Sports, and Student Clubs",
+      "category": "hostel",
+      "priority": 1
+    },
+    {
+      "url": "https://jklu.edu.in/contact-us/",
+      "title": "JKLU Contact Information, Admissions Helpline, Campus Location",
+      "category": "contact",
+      "priority": 1
+    }
+  ],
+  "news_and_events": [
+    {
+      "url": "https://jklu.edu.in/news/",
+      "title": "JKLU News, Events, Academic Notices, and Announcements",
+      "category": "notices",
+      "priority": 1
+    }
+  ]
+}
+

@@ -349,7 +349,10 @@ class SelfAgenticMemory:
     # ------------------------------------------------------------- recall api
     def recall(self, query: str, threshold: float = 0.38) -> MemoryMatch | None:
         """Recall matching verified memory entry for a user query."""
+        t_rec_start = time.perf_counter()
+        self.last_lookup_ms = 0.0
         if not self.entries or not query.strip():
+            self.last_lookup_ms = round((time.perf_counter() - t_rec_start) * 1000, 2)
             return None
 
         q_clean = query.strip()
@@ -368,8 +371,10 @@ class SelfAgenticMemory:
                 continue
             for pat in entry.patterns:
                 if q_low == pat.lower().strip(" ?.,"):
+                    self.last_lookup_ms = round((time.perf_counter() - t_rec_start) * 1000, 2)
                     return MemoryMatch(entry=entry, similarity=1.0, tier="exact", matched_pattern=pat)
             if q_low == entry.canonical_query.lower().strip(" ?.,"):
+                self.last_lookup_ms = round((time.perf_counter() - t_rec_start) * 1000, 2)
                 return MemoryMatch(entry=entry, similarity=1.0, tier="exact", matched_pattern=entry.canonical_query)
 
         # 2. Fast dense pattern matrix dot-product
@@ -407,6 +412,7 @@ class SelfAgenticMemory:
                 best_score = score
                 best_entry = entry
 
+        self.last_lookup_ms = round((time.perf_counter() - t_rec_start) * 1000, 2)
         if best_entry and best_score >= threshold:
             tier = "exact" if best_score >= 0.85 else ("strong" if best_score >= 0.72 else "guidance")
             return MemoryMatch(entry=best_entry, similarity=round(best_score, 4), tier=tier, matched_pattern=best_entry.canonical_query)

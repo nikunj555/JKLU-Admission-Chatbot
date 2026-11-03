@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import os
 import re
+import threading
+import time
 from datetime import date
 
 from . import config as C
@@ -101,11 +103,30 @@ class LLMError(Exception):
     pass
 
 
+_session: requests.Session | None = None
+_session_lock = threading.Lock()
+
+
+def _get_session() -> requests.Session:
+    global _session
+    if _session is None:
+        with _session_lock:
+            if _session is None:
+                s = requests.Session()
+                if hasattr(requests, "adapters") and hasattr(requests.adapters, "HTTPAdapter"):
+                    adapter = requests.adapters.HTTPAdapter(pool_connections=10, pool_maxsize=10, max_retries=1)
+                    s.mount("https://", adapter)
+                    s.mount("http://", adapter)
+                _session = s
+    return _session
+
+
 def _post(url: str, headers: dict, body: dict) -> dict:
     if requests is None:
         raise LLMError("requests is not installed")
+    s = _get_session()
     try:
-        r = requests.post(url, headers=headers, json=body, timeout=C.LLM_TIMEOUT)
+        r = s.post(url, headers=headers, json=body, timeout=C.LLM_TIMEOUT)
     except Exception as exc:
         raise LLMError(f"{type(exc).__name__}: {str(exc)[:100]}") from exc
     if r.status_code >= 400:
@@ -184,14 +205,17 @@ def _groq(system: str, user: str, model: str | None = None) -> str:
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     m = model or C.GROQ_MODEL
     body = {"model": m, "messages": messages, "max_tokens": C.LLM_MAX_TOKENS, "temperature": 0.1}
+    if "qwen" in m.lower():
+        body["reasoning_format"] = "hidden"
     try:
         data = _post(url, headers, body)
     except LLMError as exc:
         err_str = str(exc)
         if any(code in err_str for code in ("404", "429", "413")):
-            alt_model = "allam-2-7b" if m != "allam-2-7b" else "qwen/qwen3.8-27b"
+            alt_model = "llama-3.1-8b-instant" if m != "llama-3.1-8b-instant" else "llama-3.3-70b-versatile"
             try:
                 body["model"] = alt_model
+                body.pop("reasoning_format", None)
                 data = _post(url, headers, body)
             except Exception:
                 raise exc
@@ -1424,6 +1448,11 @@ class Generator:
     def __init__(self, provider: str | None = None, model: str | None = None):
         self.provider = resolve_provider(provider)
         self.model = model
+        self.last_timings: dict[str, float] = {
+            "prompt_building_ms": 0.0,
+            "llm_time_to_first_token_ms": 0.0,
+            "llm_total_ms": 0.0,
+        }
         if self.provider == "none":
             log.info("LLM: no key found -> extractive answers "
                      "(set GROQ_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY in .env, "
@@ -1434,15 +1463,26 @@ class Generator:
     def generate(self, question: str, passages: list[dict],
                  history: list[dict] | None = None) -> tuple[str, str, str | None]:
         """Return (answer, provider_used, error). Grounded strictly on retrieved passages."""
+        self.last_timings = {
+            "prompt_building_ms": 0.0,
+            "llm_time_to_first_token_ms": 0.0,
+            "llm_total_ms": 0.0,
+        }
         if self.provider != "none":
             fn = _get_fn(self.provider)
             if fn is not None:
                 try:
+                    t_p = time.perf_counter()
                     prompt = build_user_prompt(question, passages, history)
+                    self.last_timings["prompt_building_ms"] = round((time.perf_counter() - t_p) * 1000, 2)
+                    t_llm = time.perf_counter()
                     if self.provider in ("groq", "openrouter", "custom") and self.model:
                         text = fn(SYSTEM_PROMPT, prompt, model=self.model)
                     else:
                         text = fn(SYSTEM_PROMPT, prompt)
+                    llm_dur = round((time.perf_counter() - t_llm) * 1000, 2)
+                    self.last_timings["llm_total_ms"] = llm_dur
+                    self.last_timings["llm_time_to_first_token_ms"] = llm_dur
                     if text:
                         return text, self.provider, None
                     err = "empty response"
