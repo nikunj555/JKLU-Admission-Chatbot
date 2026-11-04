@@ -360,6 +360,11 @@ def extractive_answer(question: str, passages: list[dict], max_items: int = 4) -
     if elig_ans:
         return elig_ans
 
+    # ---- 2.7 Scholarships & Financial Assistance
+    schol_ans = _extract_scholarship_details(question, passages)
+    if schol_ans:
+        return schol_ans
+
     # ---- 3. Faculty Profiles Extraction
     fac_ans = _extract_faculty_details(question, passages)
     if fac_ans:
@@ -612,6 +617,32 @@ def _extract_fee_details(question: str, target_prog: str | None, passages: list[
         if target_prog == "bba" and not any("kpmg" in s.lower() for s in sections):
             sections.append("### Optional Specialisation Fee:\n- **KPMG Specialization Fee**: INR 40,000 per year (for 3 years) is additional, if opted.")
         return "\n\n".join(sections)
+    return None
+
+
+def _extract_scholarship_details(question: str, passages: list[dict]) -> str | None:
+    q_low = question.lower()
+    is_schol = any(w in q_low for w in ("scholarship", "waiver", "financial assistance", "percentile", "jee main", "merit scholarship"))
+    if not is_schol:
+        return None
+
+    for n, p in enumerate(passages[:5], 1):
+        txt = p.get("text", "")
+        txt_low = txt.lower()
+        if "scholarship range" in txt_low or "jee mains score" in txt_low or "percentile" in txt_low:
+            lines = [l.strip() for l in txt.split("\n") if l.strip()]
+            schol_items = []
+            for l in lines:
+                if "scholarship range" in l.lower() or ("percentile" in l.lower() and "%" in l):
+                    schol_items.append(_clean_unit(l))
+            if schol_items:
+                return "### JKLU B.Tech Merit Scholarships (Academic Fee Waiver):\n" + "\n".join(f"- {item} [{n}]" for item in schol_items[:8])
+
+        if any(w in q_low for w in ("financial assistance", "loan", "vidya lakshmi")) and ("loan" in txt_low or "vidya lakshmi" in txt_low):
+            loan_lines = [l.strip() for l in txt.split("\n") if any(k in l.lower() for k in ("loan", "financial assistance", "vidya lakshmi"))]
+            if loan_lines:
+                return "### Financial Assistance & Education Loans:\n" + "\n".join(f"- {_clean_unit(l)} [{n}]" for l in loan_lines[:5])
+
     return None
 
 

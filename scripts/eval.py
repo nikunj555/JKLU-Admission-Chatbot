@@ -301,6 +301,10 @@ def run_evaluation(output_md: Path | None = None, limit: int | None = None) -> d
 
 
 if __name__ == "__main__":
-    out_path = ROOT / "docs" / "eval_baseline.md"
+    import sys
+    out_name = "eval_after.md"
+    if len(sys.argv) > 1:
+        out_name = sys.argv[1]
+    out_path = ROOT / "docs" / out_name if not Path(out_name).is_absolute() else Path(out_name)
     run_evaluation(output_md=out_path)
 

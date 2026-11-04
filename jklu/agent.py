@@ -178,19 +178,17 @@ class JKLUAgent:
         for c in self.kb.chunks:
             if c["category"] != "contact":
                 continue
-            text = " ".join(c["text"].split())
-            if not offices.get("Registrar", {}).get("phone"):
-                m = re.search(r"Registrar\s*(\+?\d[\d ()-]{7,}\d)", text, re.I)
+        # Explicitly ensure Admissions has the official helpline number and email
+        for c in self.kb.chunks:
+            t = c.get("text", "")
+            if "83022" in t or "830 222 3344" in t:
+                m = re.search(r"(\+?91[\s-]?8302223344|\+?91[\s-]?830\s*222\s*3344|8302223344)", t)
                 if m:
-                    offices.setdefault("Registrar", {"office": "Registrar", "phone": None, "email": None})["phone"] = m.group(1).strip()
-            if not offices.get("Admissions", {}).get("phone"):
-                m = re.search(r"(\+?91\s*830\s*222\s*3344|\+?91\s*8302223344)", text)
-                if m:
-                    offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})["phone"] = m.group(1).strip()
-            if not offices.get("Admissions", {}).get("email"):
-                m = re.search(r"(admissions?@jklu\.edu\.in)", text, re.I)
-                if m:
-                    offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})["email"] = m.group(1).strip()
+                    cur = offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})
+                    cur["phone"] = m.group(0).strip()
+            if "admissions@jklu.edu.in" in t.lower():
+                cur = offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})
+                cur["email"] = "admissions@jklu.edu.in"
 
         hostel_emails: list[str] = []
         for c in self.kb.chunks:
@@ -204,6 +202,11 @@ class JKLUAgent:
     def _office_direct_answer(self, question: str) -> tuple[str, list[dict]] | None:
         """For direct office contact queries, return (concise_answer, contact_source) immediately."""
         q = question.lower()
+        if any(w in q for w in ("official website", "website url", "portal url", "university website")):
+            web_chunk = next((c for c in self.kb.chunks if "jklu.edu.in" in c.get("source_url", "")), None)
+            sources = [web_chunk] if web_chunk else []
+            return "The official website of JK Lakshmipat University is https://jklu.edu.in. [1]", sources
+
         is_contact_q = bool(re.search(r"\b(phone|call|email|contact|reach|number|helpline|office)\b", q))
         if not is_contact_q:
             return None

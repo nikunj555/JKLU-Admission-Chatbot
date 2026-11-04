@@ -37,6 +37,7 @@ yarn-error.log*
 
 # Temporary data artifacts & logs
 data/feedback.jsonl
+data/learning/unanswered.jsonl
 results/
 
 # Temporary and backup files
