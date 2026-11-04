@@ -31,6 +31,7 @@ from .utils import log
 
 _LEARNING_DIR = C.DATA_DIR / "learning"
 _MEMORY_FILE = _LEARNING_DIR / "learned_memory.json"
+_VECTORS_FILE = _LEARNING_DIR / "learned_vectors.npz"
 _LOCK = threading.RLock()
 
 
@@ -105,8 +106,11 @@ class SelfAgenticMemory:
     def __init__(self, kb=None, store_path: Path | None = None):
         self.kb = kb
         self.store_path = store_path or _MEMORY_FILE
+        self.vectors_path = self.store_path.with_name("learned_vectors.npz")
         self.entries: list[MemoryEntry] = []
         self._emb_matrix: np.ndarray | None = None
+        self._pattern_map: list[MemoryEntry] = []
+        self._pattern_ids: list[str] = []
         self._load()
 
     # ------------------------------------------------------------- persistence
@@ -119,7 +123,31 @@ class SelfAgenticMemory:
                 with open(self.store_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.entries = [MemoryEntry.from_dict(d) for d in data]
-                self._rebuild_embedding_matrix()
+
+                # Precompute synonym term sets on each entry for instant microsecond recall
+                for e in self.entries:
+                    e._cached_terms = self._synonym_term_set(e.canonical_query + " " + " ".join(e.patterns[:4]))
+
+                # Fast binary load for vectors if available
+                if self.vectors_path.is_file():
+                    try:
+                        npz = np.load(self.vectors_path, allow_pickle=True)
+                        mat = npz["emb_matrix"]
+                        ids = list(npz["entry_ids"])
+                        id_map = {e.id: e for e in self.entries}
+                        if mat.shape[0] == len(ids) and all(i in id_map for i in ids):
+                            self._emb_matrix = mat
+                            self._pattern_map = [id_map[i] for i in ids]
+                            self._pattern_ids = ids
+                            log.info("SelfAgenticMemory fast-loaded %d phrasing vectors in binary mode", mat.shape[0])
+                        else:
+                            self._rebuild_embedding_matrix()
+                    except Exception as err:
+                        log.warning("Fast vector load failed (%s), rebuilding matrix...", err)
+                        self._rebuild_embedding_matrix()
+                else:
+                    self._rebuild_embedding_matrix()
+
                 log.info("SelfAgenticMemory loaded %d learned memory clusters from %s",
                          len(self.entries), self.store_path.name)
             except Exception as e:
@@ -135,8 +163,16 @@ class SelfAgenticMemory:
                     json.dump([e.to_dict() for e in self.entries], f, indent=2, ensure_ascii=False)
                 if temp_file.exists():
                     os.replace(temp_file, self.store_path)
+                if self._emb_matrix is not None and getattr(self, "_pattern_ids", None):
+                    try:
+                        np.savez_compressed(self.vectors_path, emb_matrix=self._emb_matrix, entry_ids=np.array(self._pattern_ids))
+                    except Exception:
+                        pass
             except Exception as e:
                 log.error("Failed to save learned memory to %s: %s", self.store_path, e)
+
+    def _save_async(self) -> None:
+        threading.Thread(target=self._save, daemon=True).start()
 
     # -------------------------------------------------------- seed initialization
     def _seed_initial_memories(self) -> None:
@@ -277,7 +313,8 @@ class SelfAgenticMemory:
         if not embedder:
             return None
         try:
-            emb = embedder.encode([text])[0]
+            from .index import get_query_embedding
+            emb = get_query_embedding(embedder, text)
             norm = np.linalg.norm(emb)
             return (emb / norm).astype("float32") if norm > 0 else emb
         except Exception as e:
@@ -311,17 +348,21 @@ class SelfAgenticMemory:
         if not embedder or not self.entries:
             self._emb_matrix = None
             self._pattern_map = []
+            self._pattern_ids = []
             return
 
         all_texts = []
         pattern_map = []  # list of entry references for each row in all_texts
+        pattern_ids = []
         for entry in self.entries:
             all_texts.append(entry.canonical_query)
             pattern_map.append(entry)
+            pattern_ids.append(entry.id)
             for pat in entry.patterns:
                 if pat.strip().lower() != entry.canonical_query.strip().lower():
                     all_texts.append(pat)
                     pattern_map.append(entry)
+                    pattern_ids.append(entry.id)
 
         try:
             embs = embedder.encode(all_texts)
@@ -330,12 +371,18 @@ class SelfAgenticMemory:
             norms[norms == 0] = 1.0
             self._emb_matrix = (embs / norms).astype("float32")
             self._pattern_map = pattern_map
+            self._pattern_ids = pattern_ids
+            try:
+                np.savez_compressed(self.vectors_path, emb_matrix=self._emb_matrix, entry_ids=np.array(self._pattern_ids))
+            except Exception:
+                pass
             log.info("SelfAgenticMemory built fast pattern matrix: %d phrasing vectors across %d clusters",
                      len(all_texts), len(self.entries))
         except Exception as e:
             log.warning("Pattern matrix build failed in SelfAgenticMemory: %s", e)
             self._emb_matrix = None
             self._pattern_map = []
+            self._pattern_ids = []
 
     # ------------------------------------------------------- similarity matching
     @staticmethod
@@ -349,6 +396,8 @@ class SelfAgenticMemory:
     # ------------------------------------------------------------- recall api
     def recall(self, query: str, threshold: float = 0.38) -> MemoryMatch | None:
         """Recall matching verified memory entry for a user query."""
+        if not getattr(C, "LEARNING_ENABLED", True):
+            return None
         t_rec_start = time.perf_counter()
         self.last_lookup_ms = 0.0
         if not self.entries or not query.strip():
@@ -400,7 +449,9 @@ class SelfAgenticMemory:
                 continue
 
             d_sim = dense_scores_by_entry.get(entry.id, 0.0)
-            e_terms = self._synonym_term_set(entry.canonical_query + " " + " ".join(entry.patterns[:4]))
+            e_terms = getattr(entry, "_cached_terms", None)
+            if e_terms is None:
+                e_terms = entry._cached_terms = self._synonym_term_set(entry.canonical_query + " " + " ".join(entry.patterns[:4]))
             overlap = len(q_terms & e_terms) / max(len(q_terms), 1) if q_terms else 0.0
 
             # Score is driven by the maximum of dense similarity and hybrid overlap
@@ -421,6 +472,8 @@ class SelfAgenticMemory:
     # ------------------------------------------------- self-reflection & learning
     def reflect_and_learn(self, raw_query: str, extracted_q: str, passages: list[dict], result: dict) -> bool:
         """Self-Agentic Reflection: evaluate answer quality and autonomously store the learned query pattern."""
+        if not getattr(C, "LEARNING_ENABLED", True):
+            return False
         raw_q = (raw_query or "").strip()
         if not raw_q or len(raw_q) < 4:
             return False
@@ -466,7 +519,8 @@ class SelfAgenticMemory:
             for cid in chunk_ids:
                 if cid not in entry.chunk_ids:
                     entry.chunk_ids.append(cid)
-            self._save()
+            entry._cached_terms = self._synonym_term_set(entry.canonical_query + " " + " ".join(entry.patterns[:4]))
+            self._save_async()
             return True
         else:
             # Brand new semantic pattern: create a new cluster
@@ -487,10 +541,15 @@ class SelfAgenticMemory:
             unit_emb = self._encode_text(f"{new_entry.canonical_query} {raw_q}")
             if unit_emb is not None:
                 new_entry.embedding = [float(x) for x in unit_emb]
+                if self._emb_matrix is not None:
+                    self._emb_matrix = np.vstack([self._emb_matrix, unit_emb.reshape(1, -1)])
+                    self._pattern_map.append(new_entry)
+                    if hasattr(self, "_pattern_ids"):
+                        self._pattern_ids.append(new_entry.id)
+            new_entry._cached_terms = self._synonym_term_set(new_entry.canonical_query + " " + " ".join(new_entry.patterns[:4]))
 
             self.entries.append(new_entry)
-            self._rebuild_embedding_matrix()
-            self._save()
+            self._save_async()
             log.info("[Self-Agentic RAG] Discovered and memorized new query cluster [%s]: '%s' with %d chunk citations",
                      new_id, new_entry.canonical_query[:50], len(chunk_ids))
             return True

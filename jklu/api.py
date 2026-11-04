@@ -73,6 +73,17 @@ async def lifespan(app: FastAPI):
             log.error("Startup agent load failed: %s", exc)
     else:
         threading.Thread(target=get_agent, daemon=True, name="agent-init").start()
+
+    def _warmup_worker():
+        try:
+            agent = get_agent()
+            if agent and agent.kb and agent.kb.embedder:
+                agent.kb.embedder.encode(["warmup query"])
+                log.info("FastEmbed ONNX runtime warmed up successfully.")
+        except Exception as exc:
+            log.warning("Warmup failed: %s", exc)
+
+    threading.Thread(target=_warmup_worker, daemon=True, name="agent-warmup").start()
     yield
 
 
@@ -109,6 +120,12 @@ class ChatRequest(BaseModel):
     category: Optional[str] = None
     top_k: int = Field(default=C.TOP_K, ge=1, le=10)
     history: Optional[List[Turn]] = None
+
+
+@app.get("/ping")
+@app.get("/api/ping")
+def ping():
+    return {"status": "ok", "time": time.time()}
 
 
 @app.get("/health")

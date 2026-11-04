@@ -212,7 +212,7 @@ def _groq(system: str, user: str, model: str | None = None) -> str:
     except LLMError as exc:
         err_str = str(exc)
         if any(code in err_str for code in ("404", "429", "413")):
-            alt_model = "llama-3.1-8b-instant" if m != "llama-3.1-8b-instant" else "llama-3.3-70b-versatile"
+            alt_model = "openai/gpt-oss-20b" if m != "openai/gpt-oss-20b" else "openai/gpt-oss-120b"
             try:
                 body["model"] = alt_model
                 body.pop("reasoning_format", None)

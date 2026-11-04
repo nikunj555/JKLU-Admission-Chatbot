@@ -159,7 +159,7 @@ export default function App() {
               />
               <span className="hidden sm:inline">
                 {online === null
-                  ? 'Connecting…'
+                  ? 'Waking up the assistant…'
                   : online
                   ? health?.chunks
                     ? `Knowledge base online · ${health.chunks.toLocaleString()} verified passages`

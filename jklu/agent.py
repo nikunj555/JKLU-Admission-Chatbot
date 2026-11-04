@@ -908,14 +908,24 @@ class JKLUAgent:
 
         tier_used = "tier1_indexed"
 
-        # Check if query is time-sensitive (admissions dates, deadlines, notices, news, updates)
-        is_time_sensitive = any(w in q_comb for w in (
-            "date", "deadline", "last date", "schedule", "when does", "calendar", "notice",
-            "notices", "event", "events", "news", "announcement", "admission 2026", "2026-27", "update"
+        # Check if query is specifically asking for live real-time breaking announcements
+        is_breaking_news = any(w in q_comb for w in (
+            "latest notice", "new notice", "latest circular", "latest announcement",
+            "recent announcement", "today's update", "current news", "breaking news"
         ))
 
-        # Tier 2: Live official JKLU website fetch if confidence is borderline or time-sensitive
-        if (ev.confidence < C.LIVE_FETCH_THRESHOLD or is_time_sensitive) and C.LIVE_FETCH_ENABLED and not is_fac_roster:
+        # Tier 2: Live official JKLU website fetch only if local knowledge has insufficient confidence (< 0.45 or ESCALATE)
+        # or if the query specifically asks for latest breaking notices/news and confidence isn't absolute.
+        should_live_fetch = (
+            C.LIVE_FETCH_ENABLED
+            and not is_fac_roster
+            and (
+                (ev.status == E.ESCALATE or ev.confidence < 0.45)
+                or (is_breaking_news and ev.confidence < 0.85)
+            )
+        )
+
+        if should_live_fetch:
             try:
                 live_chunks = sync_fetch_and_rank_live_evidence(
                     extracted_q,

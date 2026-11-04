@@ -162,6 +162,7 @@ UI_PORT = _env_int("JKLU_UI_PORT", 8501)
 # -------------------------------------------------------- Tier 2: Live Fetch
 LIVE_FETCH_ENABLED = os.environ.get("LIVE_FETCH_ENABLED", "true").lower() in ("1", "true", "yes")
 LIVE_FETCH_THRESHOLD = _env_float("LIVE_FETCH_THRESHOLD", 0.65)
+LEARNING_ENABLED = os.environ.get("LEARNING_ENABLED", "true").lower() in ("1", "true", "yes")
 CACHE_TTL = _env_int("CACHE_TTL", 3600 * 12)  # 12 hours TTL for live web cache
 LIVE_FETCH_TIMEOUT = _env_float("LIVE_FETCH_TIMEOUT", 2.5)
 LIVE_MAX_PAGES = _env_int("LIVE_MAX_PAGES", 2)

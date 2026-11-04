@@ -284,6 +284,26 @@ def ensure_index(force: bool = False, allow_semantic: bool = True) -> dict:
 # ==========================================================================
 # Knowledge base: hybrid search
 # ==========================================================================
+_QUERY_EMB_CACHE: dict[str, np.ndarray] = {}
+_MAX_QUERY_CACHE = 1024
+
+
+def get_query_embedding(embedder, query: str) -> np.ndarray:
+    """Cached query embedding generator for fast repeated and follow-up turns."""
+    q = query.strip()
+    cached = _QUERY_EMB_CACHE.get(q)
+    if cached is not None:
+        return cached
+    vec = embedder.encode([q])[0]
+    if len(_QUERY_EMB_CACHE) >= _MAX_QUERY_CACHE:
+        try:
+            _QUERY_EMB_CACHE.pop(next(iter(_QUERY_EMB_CACHE)))
+        except (KeyError, StopIteration):
+            pass
+    _QUERY_EMB_CACHE[q] = vec
+    return vec
+
+
 def _start_year(ay: str | None) -> int | None:
     m = re.match(r"(20\d{2})", ay or "")
     return int(m.group(1)) if m else None
@@ -388,7 +408,7 @@ class KnowledgeBase:
         qvec = None
         if mode in ("hybrid", "dense") and self.embedder is not None:
             t0 = time.perf_counter()
-            qvec = self.embedder.encode([query])[0]
+            qvec = get_query_embedding(self.embedder, query)
             timings["query_embedding_ms"] = round((time.perf_counter() - t0) * 1000, 2)
             t1 = time.perf_counter()
             sc, ids = self.vi.search(qvec, cand_k)

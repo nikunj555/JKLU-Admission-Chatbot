@@ -1,43 +1,43 @@
 # JKLU Assistant - Latency Profiling Report
 
-**Date**: 2026-11-04 15:20:42 UTC  
+**Date**: 2026-11-04 15:41:40 UTC  
 **Queries Profiled**: 19  
 **Configured Groq Model**: `qwen/qwen3.8-27b`  
-**Cold Boot Time**: 50.298s  
-**Cold First Query Time**: 22721.49 ms  
-**RSS Memory**: Start = 66.2 MB | Post-Init = 348.8 MB | Final = 360.6 MB  
+**Cold Boot Time**: 2.415s  
+**Cold First Query Time**: 993.12 ms  
+**RSS Memory**: Start = 66.6 MB | Post-Init = 300.1 MB | Final = 307.7 MB  
 
 ## 1. Top 3 Bottlenecks Ranked by Time Spent
 
 ### #1: `page_fetch_ms`
-- **Mean**: 6261.6 ms | **p50**: 6261.6 ms | **p95**: 7107.0 ms | **Max**: 7200.9 ms
+- **Mean**: 3554.9 ms | **p50**: 3554.9 ms | **p95**: 3554.9 ms | **Max**: 3554.9 ms
 - **Root Cause**: Tier 2 live fetch triggers on keywords like `'2026-27'` or `'schedule'` even when answers already exist in the index, firing blocking HTTP requests over the network.
-### #2: `memory_lookup_ms`
-- **Mean**: 5471.5 ms | **p50**: 1593.2 ms | **p95**: 14343.7 ms | **Max**: 18541.4 ms
-- **Root Cause**: `SelfAgenticMemory.recall()` performs linear dense matrix multiplication across all 400+ phrasing patterns and runs dynamic synonym-overlap comparisons on every query synchronously.
-### #3: `llm_time_to_first_token_ms`
-- **Mean**: 835.8 ms | **p50**: 1156.0 ms | **p95**: 1265.9 ms | **Max**: 1265.9 ms
+### #2: `llm_time_to_first_token_ms`
+- **Mean**: 910.8 ms | **p50**: 1209.0 ms | **p95**: 1568.2 ms | **Max**: 1568.2 ms
+- **Root Cause**: LLM token generation latency and HTTP 429 rate limits on `qwen/qwen3.8-27b`, causing token stalls and extractive retries.
+### #3: `llm_total_ms`
+- **Mean**: 910.8 ms | **p50**: 1209.0 ms | **p95**: 1568.2 ms | **Max**: 1568.2 ms
 - **Root Cause**: LLM token generation latency and HTTP 429 rate limits on `qwen/qwen3.8-27b`, causing token stalls and extractive retries.
 
 ## 2. Complete Latency Breakdown Table
 
 | Stage | p50 (ms) | p95 (ms) | Mean (ms) | Max (ms) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Overall Request Latency** | **11178.4** | **36264.6** | **15625.4** | **54271.6** |
-| `page_fetch_ms` | 6261.6 | 7107.0 | 6261.6 | 7200.9 |
-| `memory_lookup_ms` | 1593.2 | 14343.7 | 5471.5 | 18541.4 |
-| `llm_time_to_first_token_ms` | 1156.0 | 1265.9 | 835.8 | 1265.9 |
-| `llm_total_ms` | 1156.0 | 1265.9 | 835.8 | 1265.9 |
-| `live_fetch_total_ms` | 0.0 | 5520.5 | 659.8 | 7202.1 |
-| `retrieval_total_ms` | 134.9 | 451.1 | 175.1 | 519.6 |
-| `query_embedding_ms` | 96.9 | 329.7 | 125.6 | 410.6 |
-| `bm25_search_ms` | 6.1 | 110.6 | 25.4 | 168.9 |
-| `faiss_search_ms` | 0.8 | 57.9 | 11.6 | 136.1 |
-| `query_classification_ms` | 7.4 | 14.8 | 6.9 | 16.8 |
-| `robots_sitemap_ms` | 6.2 | 10.8 | 6.2 | 11.3 |
-| `rrf_fusion_ms` | 0.2 | 0.6 | 0.4 | 3.2 |
-| `prompt_building_ms` | 0.4 | 0.4 | 0.3 | 0.4 |
-| `post_processing_ms` | 0.1 | 1.8 | 0.3 | 2.9 |
+| **Overall Request Latency** | **1237.2** | **3184.5** | **1487.4** | **4482.1** |
+| `page_fetch_ms` | 3554.9 | 3554.9 | 3554.9 | 3554.9 |
+| `llm_time_to_first_token_ms` | 1209.0 | 1568.2 | 910.8 | 1568.2 |
+| `llm_total_ms` | 1209.0 | 1568.2 | 910.8 | 1568.2 |
+| `live_fetch_total_ms` | 0.0 | 355.8 | 187.3 | 3558.5 |
+| `retrieval_total_ms` | 48.2 | 103.6 | 45.7 | 124.6 |
+| `memory_lookup_ms` | 11.5 | 95.4 | 30.4 | 101.2 |
+| `query_embedding_ms` | 0.0 | 53.9 | 17.1 | 71.7 |
+| `bm25_search_ms` | 7.8 | 31.5 | 12.5 | 35.4 |
+| `query_classification_ms` | 5.6 | 18.7 | 7.6 | 25.9 |
+| `faiss_search_ms` | 5.5 | 17.0 | 6.9 | 17.6 |
+| `robots_sitemap_ms` | 3.5 | 3.5 | 3.5 | 3.5 |
+| `prompt_building_ms` | 0.3 | 0.4 | 0.3 | 0.4 |
+| `rrf_fusion_ms` | 0.2 | 0.4 | 0.2 | 0.5 |
+| `post_processing_ms` | 0.1 | 0.1 | 0.1 | 0.2 |
 | `parse_chunk_ms` | 0.0 | 0.0 | 0.0 | 0.0 |
 | `embed_rerank_ms` | 0.0 | 0.0 | 0.0 | 0.0 |
 
