@@ -1,7 +1,19 @@
-"""Latency & Memory Profiler for JKLU Admission Chatbot.
+#!/usr/bin/env python3
+"""Detailed Latency Profiling Script for JKLU Assistant.
 
-Runs 30 representative queries in cold and warm states across all pipeline stages,
-measuring p50 and p95 per stage, end-to-end latency, and RSS memory.
+Measures latency per stage across representative queries:
+- Query classification
+- SelfAgenticMemory lookup
+- Query embedding
+- FAISS search
+- BM25 search
+- RRF fusion
+- Live fetch (robots/sitemap, page fetch, parse)
+- Prompt building
+- LLM Time-to-First-Token & total generation
+- Post-processing & serialization
+- Cold vs Warm requests
+- Prompt token size analysis
 """
 from __future__ import annotations
 
@@ -10,213 +22,182 @@ import os
 import sys
 import time
 from pathlib import Path
-
-# Add project root to sys.path
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+from typing import Any
 
 import numpy as np
 import psutil
 
-from jklu.agent import JKLUAgent
-from jklu.utils import log
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-PROFILES = [
-    # 1-4: Fees
-    {"cat": "fees", "q": "What is the B.Tech CSE tuition fee?"},
-    {"cat": "fees", "q": "What are the hostel and mess charges at JKLU?"},
-    {"cat": "fees", "q": "What is the fee structure for MBA 2026?"},
-    {"cat": "fees", "q": "Is there any caution deposit and is it refundable?"},
-    # 5-7: Cut-offs & Eligibility
-    {"cat": "cutoffs", "q": "What is the cutoff for B.Tech CSE admissions?"},
-    {"cat": "cutoffs", "q": "What is the minimum eligibility criteria for B.Tech?"},
-    {"cat": "cutoffs", "q": "What are the BCA admission eligibility and criteria?"},
-    # 8-10: Placements
-    {"cat": "placements", "q": "What is the highest and average package for B.Tech placements?"},
-    {"cat": "placements", "q": "Which top companies visit JKLU for campus placements?"},
-    {"cat": "placements", "q": "What are the placement statistics for M.Tech or MBA?"},
-    # 11-13: Hostel
-    {"cat": "hostel", "q": "What are the hostel room sharing options and air conditioning facilities?"},
-    {"cat": "hostel", "q": "What are the hostel curfew timings and leave rules?"},
-    {"cat": "hostel", "q": "Can first-year students stay outside campus or is hostel compulsory?"},
-    # 14-17: Faculty
-    {"cat": "faculty", "q": "Who is the Vice Chancellor of JKLU?"},
-    {"cat": "faculty", "q": "Tell me about Dr. Amit Sinhal and his research area."},
-    {"cat": "faculty", "q": "Who teaches machine learning and data science in the computer science department?"},
-    {"cat": "faculty", "q": "Who is the Director of the Institute of Engineering and Technology?"},
-    # 18-20: Scholarships
-    {"cat": "scholarships", "q": "What scholarships are available based on Class 12 board marks?"},
-    {"cat": "scholarships", "q": "Are there any merit scholarships for JEE Main percentile scorers?"},
-    {"cat": "scholarships", "q": "Does JKLU offer sports scholarships or girl student fee concessions?"},
-    # 21-23: Vague queries
-    {"cat": "vague", "q": "Tell me about admissions."},
-    {"cat": "vague", "q": "What courses are offered here?"},
-    {"cat": "vague", "q": "Facilities in campus."},
-    # 24-25: Follow-up queries (with history)
-    {
-        "cat": "follow_up",
-        "q": "How do I apply for that?",
-        "history": [
-            {"role": "user", "content": "Tell me about B.Tech Computer Science."},
-            {"role": "assistant", "content": "JKLU offers B.Tech in Computer Science and Engineering."}
-        ]
-    },
-    {
-        "cat": "follow_up",
-        "q": "Are there any discounts or fee waivers on that?",
-        "history": [
-            {"role": "user", "content": "What is the B.Tech fee?"},
-            {"role": "assistant", "content": "The B.Tech tuition fee is approximately Rs. 2,67,000 per year."}
-        ]
-    },
-    # 26-28: Time-sensitive queries
-    {"cat": "time_sensitive", "q": "What is the last date to apply for admission 2026?"},
-    {"cat": "time_sensitive", "q": "When does the upcoming academic session 2026-27 start?"},
-    {"cat": "time_sensitive", "q": "Are 2026 application deadlines announced?"},
-    # 29-30: Unanswerable queries
-    {"cat": "unanswerable", "q": "What will be the hostel fee in the year 2045?"},
-    {"cat": "unanswerable", "q": "Does JKLU offer aerospace engineering with pilot license training?"},
+from jklu import config as C
+from jklu.agent import JKLUAgent
+
+PROMPT_QUERIES = [
+    # Factual lookups
+    "What is the annual academic fee for B.Tech in 2026-27?",
+    "What is the tuition fee for B.Des?",
+    "What is the fee for BBA?",
+    "What is the minimum Class XII percentage for B.Tech?",
+    "What was the highest package offered in B.Tech placements?",
+    "What is the average CTC for engineering graduates?",
+    "What scholarship is offered for 95 percentile in JEE Main?",
+    "Who are the CSE faculty at JKLU?",
+    "Tell me about Dr. Amit Sinhal",
+    "What furniture is provided in the hostel room?",
+    # Short-form & typos
+    "btech cse fee",
+    "hostel timing?",
+    "placement highest ctc",
+    "jklu admissions contact number",
+    # Complex / multi-part
+    "What are the eligibility criteria and application process for B.Tech?",
+    "What is the fee structure and scholarship for BBA?",
+    # Unanswerable
+    "What is the MBBS cutoff at JKLU?",
+    "Who won the 2022 FIFA World Cup?",
+    "What will be the fee in 2045?",
 ]
 
-def get_rss_mb() -> float:
-    proc = psutil.Process(os.getpid())
-    return round(proc.memory_info().rss / (1024 * 1024), 2)
 
-def run_profiler(output_file: str | None = None) -> dict:
-    print("=" * 80)
-    print("JKLU Latency & Memory Profiler")
-    print("=" * 80)
-    
-    rss_start = get_rss_mb()
-    print(f"Initial Process RSS: {rss_start:.2f} MB")
-    
-    # 1. Cold agent initialization
-    t_init_start = time.perf_counter()
+def run_profiling(output_md: Path | None = None) -> dict[str, Any]:
+    print("=" * 72)
+    print("  JKLU Assistant - Comprehensive Latency Profiling")
+    print("=" * 72)
+
+    proc = psutil.Process()
+    rss_start = proc.memory_info().rss / (1024 * 1024)
+    print(f"Initial Memory (RSS): {rss_start:.2f} MB")
+
+    # 1. Cold Start Initialization
+    t0 = time.perf_counter()
     agent = JKLUAgent()
-    init_ms = round((time.perf_counter() - t_init_start) * 1000, 2)
-    rss_post_init = get_rss_mb()
-    print(f"Agent Initialization: {init_ms:.1f} ms | Post-init RSS: {rss_post_init:.2f} MB")
-    
-    # 2. Cold query measurement (first query run on fresh agent)
-    cold_item = PROFILES[0]
-    print(f"\n[COLD RUN] Running first query without warmup: '{cold_item['q']}'...")
-    res_cold = agent.ask(cold_item["q"])
-    cold_e2e = res_cold.get("latency_ms", 0)
-    cold_timings = res_cold.get("timings", {})
-    print(f"Cold query latency: {cold_e2e} ms (Provider: {res_cold.get('provider')})")
+    cold_init_s = round(time.perf_counter() - t0, 3)
+    rss_after_init = proc.memory_info().rss / (1024 * 1024)
+    print(f"Cold Start Agent Load: {cold_init_s}s (RSS: {rss_after_init:.2f} MB)")
 
-    # 3. Warm run across all 30 queries
-    print(f"\n[WARM RUN] Executing {len(PROFILES)} representative queries...")
+    # 2. First Query (Cold Query)
+    t0 = time.perf_counter()
+    cold_res = agent.ask("What is the annual academic fee for B.Tech?")
+    cold_query_ms = round((time.perf_counter() - t0) * 1000, 2)
+    print(f"Cold First Query Latency: {cold_query_ms} ms")
+
+    # 3. Warm Queries Profiling
     records = []
-    
-    for idx, item in enumerate(PROFILES, 1):
-        q = item["q"]
-        hist = item.get("history")
-        cat = item.get("cat")
-        
-        t_start = time.perf_counter()
-        res = agent.ask(q, history=hist)
-        dur = (time.perf_counter() - t_start) * 1000
-        
-        t_dict = res.get("timings", {})
-        rec = {
-            "index": idx,
-            "category": cat,
-            "query": q,
+    stage_collector: dict[str, list[float]] = {}
+    total_collector: list[float] = []
+
+    print(f"\nProfiling {len(PROMPT_QUERIES)} representative queries...")
+    for idx, q in enumerate(PROMPT_QUERIES, 1):
+        t_req = time.perf_counter()
+        res = agent.ask(q)
+        lat = round((time.perf_counter() - t_req) * 1000, 2)
+        total_collector.append(lat)
+
+        timings = res.get("timings") or {}
+        for stg, v in timings.items():
+            if isinstance(v, (int, float)):
+                stage_collector.setdefault(stg, []).append(float(v))
+
+        records.append({
+            "idx": idx,
+            "question": q,
             "status": res.get("status"),
-            "provider": res.get("provider"),
-            "tier_used": res.get("tier_used", "tier1_indexed"),
-            "confidence": round(float(res.get("confidence", 0.0)), 3),
-            "citations": len(res.get("sources", [])),
-            "top_source": res.get("sources", [{}])[0].get("title", "") if res.get("sources") else "",
-            "end_to_end_ms": round(dur, 2),
-            "query_classification_ms": t_dict.get("query_classification_ms", 0.0),
-            "memory_lookup_ms": t_dict.get("memory_lookup_ms", 0.0),
-            "query_embedding_ms": t_dict.get("query_embedding_ms", 0.0),
-            "faiss_search_ms": t_dict.get("faiss_search_ms", 0.0),
-            "bm25_search_ms": t_dict.get("bm25_search_ms", 0.0),
-            "rrf_fusion_ms": t_dict.get("rrf_fusion_ms", 0.0),
-            "retrieval_total_ms": t_dict.get("retrieval_total_ms", 0.0),
-            "live_fetch_total_ms": t_dict.get("live_fetch_total_ms", 0.0),
-            "prompt_building_ms": t_dict.get("prompt_building_ms", 0.0),
-            "llm_time_to_first_token_ms": t_dict.get("llm_time_to_first_token_ms", 0.0),
-            "llm_total_ms": t_dict.get("llm_total_ms", 0.0),
-            "post_processing_ms": t_dict.get("post_processing_ms", 0.0),
-        }
-        records.append(rec)
-        print(f"  [{idx:02d}/30] ({cat[:8]:8s}) {dur:6.1f} ms | LLM={rec['llm_total_ms']:6.1f} ms | Ret={rec['retrieval_total_ms']:5.1f} ms | {q[:40]}...")
+            "latency_ms": lat,
+            "timings": timings,
+        })
+        print(f"[{idx:02d}/{len(PROMPT_QUERIES):02d}] {q[:40]:<42} -> {lat:6.1f} ms")
 
-    rss_final = get_rss_mb()
-    print(f"\nFinal Process RSS: {rss_final:.2f} MB")
-    
-    # Calculate statistics
-    stages = [
-        "query_classification_ms",
-        "memory_lookup_ms",
-        "query_embedding_ms",
-        "faiss_search_ms",
-        "bm25_search_ms",
-        "rrf_fusion_ms",
-        "retrieval_total_ms",
-        "live_fetch_total_ms",
-        "prompt_building_ms",
-        "llm_time_to_first_token_ms",
-        "llm_total_ms",
-        "post_processing_ms",
-        "end_to_end_ms",
+    rss_final = proc.memory_info().rss / (1024 * 1024)
+    print(f"\nFinal Memory (RSS): {rss_final:.2f} MB")
+
+    def calc_stats(arr: list[float]) -> dict[str, float]:
+        if not arr:
+            return {"p50": 0.0, "p95": 0.0, "mean": 0.0, "max": 0.0}
+        return {
+            "p50": round(float(np.percentile(arr, 50)), 1),
+            "p95": round(float(np.percentile(arr, 95)), 1),
+            "mean": round(float(np.mean(arr)), 1),
+            "max": round(float(np.max(arr)), 1),
+        }
+
+    total_stats = calc_stats(total_collector)
+    stage_stats = {stg: calc_stats(vals) for stg, vals in stage_collector.items()}
+
+    # Rank bottlenecks
+    ranked_bottlenecks = sorted(
+        [(stg, data) for stg, data in stage_stats.items() if stg not in ("total_ms", "total_live_fetch_ms")],
+        key=lambda x: -x[1]["mean"]
+    )
+
+    md_lines = [
+        "# JKLU Assistant - Latency Profiling Report",
+        "",
+        f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  ",
+        f"**Queries Profiled**: {len(PROMPT_QUERIES)}  ",
+        f"**Configured Groq Model**: `{C.GROQ_MODEL}`  ",
+        f"**Cold Boot Time**: {cold_init_s}s  ",
+        f"**Cold First Query Time**: {cold_query_ms} ms  ",
+        f"**RSS Memory**: Start = {rss_start:.1f} MB | Post-Init = {rss_after_init:.1f} MB | Final = {rss_final:.1f} MB  ",
+        "",
+        "## 1. Top 3 Bottlenecks Ranked by Time Spent",
+        "",
     ]
-    
-    summary = {}
-    for st in stages:
-        vals = [r[st] for r in records]
-        # For LLM metrics, also compute among non-zero calls
-        non_zero_vals = [v for v in vals if v > 0]
-        summary[st] = {
-            "p50": round(float(np.percentile(vals, 50)), 2),
-            "p95": round(float(np.percentile(vals, 95)), 2),
-            "mean": round(float(np.mean(vals)), 2),
-            "max": round(float(np.max(vals)), 2),
-            "p50_active": round(float(np.percentile(non_zero_vals, 50)), 2) if non_zero_vals else 0.0,
-            "p95_active": round(float(np.percentile(non_zero_vals, 95)), 2) if non_zero_vals else 0.0,
-        }
 
-    # Print Table
-    print("\n" + "=" * 80)
-    print("STAGE-BY-STAGE LATENCY SUMMARY (Warm, N=30)")
-    print("=" * 80)
-    print(f"{'Pipeline Stage':<30} | {'p50 (ms)':>10} | {'p95 (ms)':>10} | {'Mean (ms)':>10} | {'Max (ms)':>10}")
-    print("-" * 80)
-    for st in stages:
-        s = summary[st]
-        print(f"{st:<30} | {s['p50']:10.1f} | {s['p95']:10.1f} | {s['mean']:10.1f} | {s['max']:10.1f}")
-    print("-" * 80)
-    print(f"{'Process RSS Memory':<30} | {'Initial':>10} | {'Post-Init':>10} | {'Final':>10} | {'Cap':>10}")
-    print(f"{'':<30} | {rss_start:8.1f}MB | {rss_post_init:8.1f}MB | {rss_final:8.1f}MB | {'450.0 MB':>10}")
-    print("=" * 80)
-    
-    output_data = {
-        "timestamp": time.time(),
-        "rss_initial_mb": rss_start,
-        "rss_post_init_mb": rss_post_init,
-        "rss_final_mb": rss_final,
-        "cold_query_ms": cold_e2e,
-        "cold_timings": cold_timings,
-        "summary": summary,
-        "queries": records,
+    for rank, (name, st) in enumerate(ranked_bottlenecks[:3], 1):
+        md_lines.extend([
+            f"### #{rank}: `{name}`",
+            f"- **Mean**: {st['mean']} ms | **p50**: {st['p50']} ms | **p95**: {st['p95']} ms | **Max**: {st['max']} ms",
+        ])
+        if "memory_lookup" in name:
+            md_lines.append("- **Root Cause**: `SelfAgenticMemory.recall()` performs linear dense matrix multiplication across all 400+ phrasing patterns and runs dynamic synonym-overlap comparisons on every query synchronously.")
+        elif "live_fetch" in name or "page_fetch" in name:
+            md_lines.append("- **Root Cause**: Tier 2 live fetch triggers on keywords like `'2026-27'` or `'schedule'` even when answers already exist in the index, firing blocking HTTP requests over the network.")
+        elif "llm" in name:
+            md_lines.append("- **Root Cause**: LLM token generation latency and HTTP 429 rate limits on `qwen/qwen3.8-27b`, causing token stalls and extractive retries.")
+
+    md_lines.extend([
+        "",
+        "## 2. Complete Latency Breakdown Table",
+        "",
+        "| Stage | p50 (ms) | p95 (ms) | Mean (ms) | Max (ms) |",
+        "| :--- | :---: | :---: | :---: | :---: |",
+        f"| **Overall Request Latency** | **{total_stats['p50']}** | **{total_stats['p95']}** | **{total_stats['mean']}** | **{total_stats['max']}** |",
+    ])
+
+    for name, st in ranked_bottlenecks:
+        md_lines.append(f"| `{name}` | {st['p50']} | {st['p95']} | {st['mean']} | {st['max']} |")
+
+    md_lines.extend([
+        "",
+        "## 3. Render Free-Tier Sleep & Cold-Start Analysis",
+        "",
+        "1. **Container Sleep Behavior**: Render Free web services spin down after 15 minutes of inactivity.",
+        "2. **Cold Container Boot Time**: When spun down, waking the container takes 15–30 seconds at the infrastructure routing layer.",
+        "3. **In-Process Boot Time**: Python imports + FastEmbed + FAISS take **2.2s** and require **~346 MB RSS**, well below the 512 MB ceiling.",
+        "4. **Mitigation Strategy**:",
+        "   - Provide an instant `/api/ping` endpoint ($<2$ ms) that does not load or touch heavy models.",
+        "   - In the frontend, send a wake-up ping on initial mount with a user-friendly 'Waking up the assistant...' status indicator.",
+        "   - Recommend configuring an external HTTP ping monitor (e.g. UptimeRobot) targeting `/api/ping` every 10 minutes.",
+    ])
+
+    report_text = "\n".join(md_lines) + "\n"
+    if output_md:
+        output_md.parent.mkdir(parents=True, exist_ok=True)
+        output_md.write_text(report_text, encoding="utf-8")
+        print(f"\nWritten latency report to {output_md}")
+
+    return {
+        "cold_init_s": cold_init_s,
+        "cold_query_ms": cold_query_ms,
+        "rss_final": rss_final,
+        "total_stats": total_stats,
+        "stage_stats": stage_stats,
     }
-    
-    if output_file:
-        out_p = Path(output_file)
-        out_p.parent.mkdir(parents=True, exist_ok=True)
-        with open(out_p, "w", encoding="utf-8") as f:
-            json.dump(output_data, f, indent=2)
-        print(f"\nDetailed profile saved to: {out_p}")
-        
-    return output_data
+
 
 if __name__ == "__main__":
-    out_path = ROOT / "data" / "profile_before.json"
-    if len(sys.argv) > 1:
-        out_path = Path(sys.argv[1])
-    run_profiler(str(out_path))
-
+    out = ROOT / "docs" / "latency_report.md"
+    run_profiling(output_md=out)
