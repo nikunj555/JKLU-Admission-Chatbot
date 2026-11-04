@@ -7110,7 +7110,7 @@
       }
     ],
     "confidence": 0.737,
-    "hits": 18,
+    "hits": 20,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -7500,7 +7500,7 @@
       -0.014995928853750229
     ],
     "created_at": 1792257641,
-    "updated_at": 1793809914
+    "updated_at": 1793813563
   },
   {
     "id": "mem_7645000",
@@ -11053,7 +11053,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 10,
+    "hits": 12,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -11443,7 +11443,7 @@
       -0.004872538149356842
     ],
     "created_at": 1792257708,
-    "updated_at": 1793809914
+    "updated_at": 1793813561
   },
   {
     "id": "mem_7713000",
@@ -13287,7 +13287,7 @@
       }
     ],
     "confidence": 0.764,
-    "hits": 54,
+    "hits": 56,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -13677,7 +13677,7 @@
       -0.05678090825676918
     ],
     "created_at": 1792257823,
-    "updated_at": 1793809911
+    "updated_at": 1793813558
   },
   {
     "id": "mem_7830000",
@@ -25541,7 +25541,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 11,
+    "hits": 12,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -25931,7 +25931,7 @@
       -0.0837472677230835
     ],
     "created_at": 1792258197,
-    "updated_at": 1793809916
+    "updated_at": 1793813564
   },
   {
     "id": "mem_8201000",
@@ -40262,7 +40262,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 6,
+    "hits": 7,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -40652,7 +40652,7 @@
       0.024728992953896523
     ],
     "created_at": 1792258328,
-    "updated_at": 1793809906
+    "updated_at": 1793813552
   },
   {
     "id": "mem_8331000",
@@ -45897,7 +45897,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 18,
+    "hits": 19,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -46287,7 +46287,7 @@
       -0.05252756550908089
     ],
     "created_at": 1792409548,
-    "updated_at": 1793809904
+    "updated_at": 1793813549
   },
   {
     "id": "mem_9568000",
@@ -46332,7 +46332,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 17,
+    "hits": 18,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -46722,7 +46722,7 @@
       -0.000965384126175195
     ],
     "created_at": 1792409568,
-    "updated_at": 1793809909
+    "updated_at": 1793813556
   },
   {
     "id": "mem_3051000",
@@ -47216,7 +47216,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 16,
+    "hits": 17,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -47606,7 +47606,7 @@
       0.004762094467878342
     ],
     "created_at": 1792432740,
-    "updated_at": 1793809907
+    "updated_at": 1793813553
   },
   {
     "id": "mem_2745000",
@@ -47638,7 +47638,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 16,
+    "hits": 17,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -48028,7 +48028,7 @@
       0.003659668378531933
     ],
     "created_at": 1792432745,
-    "updated_at": 1793809908
+    "updated_at": 1793813554
   },
   {
     "id": "mem_2999000",
@@ -48086,7 +48086,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 3,
+    "hits": 4,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -48476,7 +48476,7 @@
       -0.027544574812054634
     ],
     "created_at": 1792432999,
-    "updated_at": 1793809918
+    "updated_at": 1793813568
   },
   {
     "id": "mem_3007000",
@@ -48521,7 +48521,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 3,
+    "hits": 4,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -48911,7 +48911,7 @@
       -0.021979648619890213
     ],
     "created_at": 1792433007,
-    "updated_at": 1793809919
+    "updated_at": 1793813568
   },
   {
     "id": "mem_3024000",
@@ -51762,7 +51762,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 14,
+    "hits": 16,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -52152,7 +52152,7 @@
       0.013927859254181385
     ],
     "created_at": 1793737522,
-    "updated_at": 1793809913
+    "updated_at": 1793813559
   },
   {
     "id": "mem_7526000",
@@ -52210,7 +52210,7 @@
       }
     ],
     "confidence": 0.843,
-    "hits": 6,
+    "hits": 7,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -52600,7 +52600,7 @@
       -0.055921003222465515
     ],
     "created_at": 1793737526,
-    "updated_at": 1793809915
+    "updated_at": 1793813563
   },
   {
     "id": "mem_7532000",
@@ -52658,7 +52658,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 5,
+    "hits": 6,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -53048,7 +53048,7 @@
       0.015532984398305416
     ],
     "created_at": 1793737532,
-    "updated_at": 1793809915
+    "updated_at": 1793813564
   },
   {
     "id": "mem_4817000",
@@ -59245,7 +59245,7 @@
       }
     ],
     "confidence": 0.945,
-    "hits": 9,
+    "hits": 10,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -59635,7 +59635,7 @@
       0.005530843511223793
     ],
     "created_at": 1793804946,
-    "updated_at": 1793809915
+    "updated_at": 1793813564
   },
   {
     "id": "mem_4956000",
@@ -71368,7 +71368,7 @@
       }
     ],
     "confidence": 0.99,
-    "hits": 5,
+    "hits": 6,
     "feedback_up": 0,
     "feedback_down": 0,
     "embedding": [
@@ -71758,7 +71758,7 @@
       -0.043855682015419006
     ],
     "created_at": 1793808899,
-    "updated_at": 1793809904
+    "updated_at": 1793813550
   },
   {
     "id": "mem_9054000",
