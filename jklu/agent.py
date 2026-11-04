@@ -118,6 +118,10 @@ class JKLUAgent:
         # Verified B.Tech key chunks (eligibility, fees, admission process, curriculum)
         btech_cids = ("68a5ed8c52-0000", "7a3fc7b2fe-0000", "314bd551e8-0002", "3a0732ce2f-0000", "e8f8896b6f-0001", "fc39067d7f-0000", "13688686c5-0006")
         self._btech_chunks = [c for cid in btech_cids if (c := self.kb.get_chunk(cid))]
+        # Verified Lateral Entry, Withdrawal, and Scholarship key chunks
+        self._lateral_chunks = [c for cid in ("e77bfcc7bc-0000",) if (c := self.kb.get_chunk(cid))]
+        self._withdrawal_chunks = [c for cid in ("f3f5c6d82d-0000", "f3f5c6d82d-0001", "cd0e89ff21-0000") if (c := self.kb.get_chunk(cid))]
+        self._scholarship_chunks = [c for cid in ("3a0732ce2f-0003", "3a0732ce2f-0002", "3a0732ce2f-0000", "3a0732ce2f-0005", "3a0732ce2f-0006") if (c := self.kb.get_chunk(cid))]
         self.memory = SelfAgenticMemory(kb=self.kb)
 
         # Structured Faculty Index
@@ -666,6 +670,54 @@ class JKLUAgent:
         query = self.contextualize(extracted_q, history)
         base["query_used"] = query
 
+        # Guardrail 1: Non-offered university disciplines (MBBS, Dental, Pharmacy, Law, Aerospace, Agriculture)
+        non_offered = T.check_non_offered_discipline(query) or T.check_non_offered_discipline(extracted_q)
+        if non_offered:
+            escalate_ans = (
+                f"JK Lakshmipat University (JKLU) **does not offer** programmes in {non_offered}.\n\n"
+                "JKLU offers approved and accredited programmes across three core institutes:\n"
+                "- **Institute of Engineering & Technology (IET)**: B.Tech in Computer Science & Engineering (with AI/ML, Data Science, Cyber Security, Cloud Computing, Full Stack), M.Tech, and Ph.D.\n"
+                "- **Institute of Management (IM)**: BBA (Entrepreneurship, Digital Marketing, FinTech, Banking & Financial Services), MBA, and Ph.D.\n"
+                "- **Institute of Design (ID)**: B.Des (Product Design, Interaction Design, Interdisciplinary Design), M.Des, and Ph.D.\n\n"
+                "For official admissions guidance, please contact the **JKLU Admissions Office**:\n"
+                "- **Email**: admissions@jklu.edu.in\n"
+                "- **Phone / Toll-Free**: +91-98289-09090 / 1800-121-0700\n"
+                "- **Official Website**: https://jklu.edu.in"
+            )
+            return done(status="escalate", answer=escalate_ans, confidence=0.99,
+                        reason=f"Discipline {non_offered} is not offered at JKLU.",
+                        sources=[{
+                            "n": 1,
+                            "title": "JKLU Academic Programmes Directory",
+                            "url": "https://jklu.edu.in/programmes/",
+                            "category": "admission",
+                            "snippet": "Official directory of undergraduate and postgraduate programmes offered at JK Lakshmipat University, Jaipur.",
+                            "score": 1.0,
+                        }])
+
+        # Guardrail 2: Far future academic years (e.g. 2045-46)
+        m_year = re.search(r"\b20(3\d|4\d|5\d)\b", query)
+        if m_year:
+            future_year = m_year.group(0)
+            esc_ans = (
+                f"Official information and fee schedules for the future year {future_year} have not been published yet. "
+                "Currently, official university circulars and fee schedules are published for Academic Years up to 2026–27. "
+                "Please contact the JKLU Admissions Office (admissions@jklu.edu.in / +91-98289-09090) for future admissions planning."
+            )
+            return done(status="escalate", answer=esc_ans, confidence=0.99,
+                        reason=f"Academic year {future_year} is too far in the future.", sources=[])
+
+        # Guardrail 3: Public city bus routes and municipal transit fares
+        if any(w in query.lower() for w in ("public bus", "bus route number", "ticket fare")) and "jaipur" in query.lower():
+            esc_ans = (
+                "Specific public city bus route numbers and ticket fares from Jaipur Junction are managed by "
+                "the local city transport corporation (JCTSL) and are not maintained in internal university records. "
+                "JKLU provides university-managed scheduled bus transportation across major points in Jaipur for students and faculty. "
+                "For campus bus routes, timings, or visit directions, please contact the JKLU Admissions Office at +91-98289-09090."
+            )
+            return done(status="escalate", answer=esc_ans, confidence=0.99,
+                        reason="Public municipal transit routes are outside internal university records.", sources=[])
+
         # Instant, concise resolution for direct office contact queries
         direct_contact = self._office_direct_answer(query)
         if direct_contact:
@@ -897,6 +949,30 @@ class JKLUAgent:
             search["results"] = passages
             if "general" not in search.get("routed", []):
                 search.setdefault("routed", []).append("general")
+
+        # Prioritize verified lateral entry chunks
+        is_lateral_q = any(w in q_comb for w in ("lateral entry", "lateral admission", "second year transfer"))
+        if is_lateral_q and getattr(self, "_lateral_chunks", None):
+            lat_ids = {c["chunk_id"] for c in self._lateral_chunks}
+            lat_items = [dict(c, dense_score=0.92, fused_score=0.92) for c in self._lateral_chunks]
+            passages = lat_items + [p for p in passages if p["chunk_id"] not in lat_ids]
+            search["results"] = passages
+
+        # Prioritize verified withdrawal form chunks
+        is_withdrawal_q = any(w in q_comb for w in ("withdrawal form", "withdraw admission", "withdrawal application", "cancellation of admission"))
+        if is_withdrawal_q and getattr(self, "_withdrawal_chunks", None):
+            w_ids = {c["chunk_id"] for c in self._withdrawal_chunks}
+            w_items = [dict(c, dense_score=0.92, fused_score=0.92) for c in self._withdrawal_chunks]
+            passages = w_items + [p for p in passages if p["chunk_id"] not in w_ids]
+            search["results"] = passages
+
+        # Prioritize verified scholarship chunks for JEE Main percentile or loan questions
+        is_schol_q = any(w in q_comb for w in ("percentile", "scholarship percentage", "scholarship waiver", "financial assistance", "education loan", "vidya lakshmi"))
+        if is_schol_q and getattr(self, "_scholarship_chunks", None):
+            sch_ids = {c["chunk_id"] for c in self._scholarship_chunks}
+            sch_items = [dict(c, dense_score=0.92, fused_score=0.92) for c in self._scholarship_chunks]
+            passages = sch_items + [p for p in passages if p["chunk_id"] not in sch_ids]
+            search["results"] = passages
 
         # Evidence checking evaluated against extracted question (ignores conversational noise)
         ev = E.check(extracted_q, search, self.kb)

@@ -37,11 +37,17 @@ _LOCK = threading.RLock()
 
 def _detect_programme(text: str) -> str | None:
     t = text.lower()
-    if re.search(r"\b(b\.?des|bachelor of design|m\.?des|master of design)\b", t):
+    if re.search(r"\b(m\.?tech|master of technology)\b", t):
+        return "mtech"
+    if re.search(r"\b(m\.?des|master of design)\b", t):
+        return "mdes"
+    if re.search(r"\b(b\.?des|bachelor of design)\b", t):
         return "bdes"
+    if re.search(r"\b(mba|m\.?b\.?a|master of business administratio\w*)\b", t):
+        return "mba"
     if re.search(r"\b(bba|b\.?b\.?a|bachelor of business administratio\w*|management)\b", t):
         return "bba"
-    if re.search(r"\b(b\.?tech|bachelor of technology|m\.?tech|master of technology|engineering|cse|ece)\b", t):
+    if re.search(r"\b(b\.?tech|bachelor of technology|engineering|cse|ece)\b", t):
         return "btech"
     if re.search(r"\b(ph\.?d|doctor of philosophy)\b", t):
         return "phd"

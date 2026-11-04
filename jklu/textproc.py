@@ -848,3 +848,24 @@ def classify_query_intent(question: str) -> str:
         return INTENT_IRRELEVANT
     return INTENT_JKLU
 
+
+NON_OFFERED_DISCIPLINES = [
+    (re.compile(r"\b(mbbs|neet|medical|dental|bds|mds|nursing|pharmacy|b\.?pharm|m\.?pharm|pharm\.?d)\b", re.I),
+     "Medical, Dental, or Pharmacy (MBBS, BDS, B.Pharm, M.Pharm)"),
+    (re.compile(r"\b(law|llb|ba\s*llb|bba\s*llb|llm|judiciary|bar council)\b", re.I),
+     "Law (BA LLB, BBA LLB, LL.B, LL.M)"),
+    (re.compile(r"\b(aerospace|aeronautical)\b", re.I),
+     "Aerospace Engineering"),
+    (re.compile(r"\b(agriculture|b\.?sc\s*agri)\b", re.I),
+     "Agriculture / B.Sc Agriculture"),
+]
+
+
+def check_non_offered_discipline(query: str) -> str | None:
+    q = (query or "").lower()
+    for rx, name in NON_OFFERED_DISCIPLINES:
+        if rx.search(q):
+            return name
+    return None
+
+

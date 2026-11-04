@@ -313,11 +313,12 @@ def _is_contact_line(u: str) -> bool:
 
 
 _PROG_PATTERNS: dict[str, re.Pattern] = {
-    "btech": re.compile(r"\b(b\.?tech|bachelor of technology)\b", re.I),
     "mtech": re.compile(r"\b(m\.?tech|master of technology)\b", re.I),
-    "bdes": re.compile(r"\b(b\.?des|bachelor of design)\b", re.I),
     "mdes": re.compile(r"\b(m\.?des|master of design)\b", re.I),
+    "bdes": re.compile(r"\b(b\.?des|bachelor of design)\b", re.I),
+    "mba": re.compile(r"\b(mba|m\.?b\.?a|master of business administratio\w*)\b", re.I),
     "bba": re.compile(r"\b(bba|b\.?b\.?a|bachelor of business administratio\w*)\b", re.I),
+    "btech": re.compile(r"\b(b\.?tech|bachelor of technology)\b", re.I),
     "phd": re.compile(r"\b(ph\.?d|doctor of philosophy)\b", re.I),
 }
 
