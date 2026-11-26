@@ -23,7 +23,12 @@
 
 University chatbots often **hallucinate**: invented scholarship percentages, guessed fee amounts, misquoted hostel rules. For a family making a financial decision, a confident wrong answer is worse than no answer.
 
-This project is a **Retrieval-Augmented Generation (RAG)** system for **JK Lakshmipat University** that answers *only* from official documents: prospectuses, fee and refund policies, hostel policies, grading regulations, and faculty directories.
+This project is a **Retrieval-Augmented Generation (RAG)** system for **JK Lakshmipat University** that answers *only* from official documents: prospectuses, fee and refund policies, hostel policies, grading regulations, semester-wise course curricula, and faculty directories.
+
+### Key Capabilities
+- **Year & Semester Curriculum Explorer**: Query courses by department, year, or semester (e.g., *"Which courses are in first year of CSE?"* or via the sidebar **Courses** finder), grouped cleanly by `Year -> Semester -> Course Code, Title, Credits`.
+- **Grounded Fee & Scholarship Schedules**: Multi-programme fee tables and merit scholarship breakdowns with zero hostel-charge leakage.
+- **Honest Escalation**: Date/deadline queries always advise confirming with the admissions office; unindexed department syllabi escalate cleanly instead of guessing.
 
 | Principle | What it means in practice |
 |---|---|

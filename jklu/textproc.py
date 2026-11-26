@@ -922,7 +922,7 @@ def parse_curriculum_query(question: str) -> dict:
         return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
 
     # Avoid hijacking "what programmes and courses are offered at JKLU?"
-    if re.search(r"\b(programmes?\s+(?:and\s+courses?\s+)?offered|which\s+(?:undergraduate|postgraduate|degree)?\s*programmes?|all\s+programmes?)\b", ql) and not re.search(r"\b(year|sem|semester|syllabus|curriculum|cse|fintech|kpmg|ece|b\.?des|m\.?tech)\b", ql):
+    if re.search(r"\b(programmes?\s+(?:and\s+courses?\s+)?(?:are\s+)?offered|which\s+(?:undergraduate|postgraduate|degree)?\s*programmes?|all\s+programmes?)\b", ql) and not re.search(r"\b(year|sem|semester|syllabus|curriculum|cse|fintech|kpmg|ece|b\.?des|m\.?tech)\b", ql):
         return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
 
     dept = None

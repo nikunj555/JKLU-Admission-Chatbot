@@ -134,6 +134,7 @@ def health():
     agent = get_agent()
     return {
         "status": "ok" if agent else "unavailable",
+        "index_loaded": bool(agent and agent.kb and len(agent.kb.chunks) > 0),
         "error": _load_error,
         "chunks": len(agent.kb.chunks) if agent else 0,
         "retrieval": ("semantic+bm25" if agent.kb.semantic else "lexical+bm25") if agent else None,
