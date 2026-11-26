@@ -10,6 +10,7 @@ import { AppSidebar } from './components/AppSidebar';
 import { BrandMark } from './components/BrandMark';
 import { ChatWindow } from './components/ChatWindow';
 import type { ComposerHandle } from './components/ChatComposer';
+import { CourseFinderModal } from './components/CourseFinderModal';
 import { FeedbackDialog } from './components/FeedbackDialog';
 import { Modal } from './components/Modal';
 import { SettingsDialog } from './components/SettingsDialog';
@@ -30,6 +31,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [coursesOpen, setCoursesOpen] = useState(false);
   const [confirmNewChat, setConfirmNewChat] = useState(false);
 
   const messages = chat.active?.messages ?? [];
@@ -93,6 +95,7 @@ export default function App() {
         onSelect={chat.select}
         onDelete={chat.remove}
         onAsk={send}
+        onCourses={() => setCoursesOpen(true)}
         onSettings={() => setSettingsOpen(true)}
         onFeedback={() => setFeedbackOpen(true)}
       />
@@ -279,6 +282,14 @@ export default function App() {
       {/* Feedback Dialog */}
       {feedbackOpen && (
         <FeedbackDialog onClose={() => setFeedbackOpen(false)} onNotify={push} />
+      )}
+
+      {/* Course Finder Clarify Flow */}
+      {coursesOpen && (
+        <CourseFinderModal
+          onClose={() => setCoursesOpen(false)}
+          onSelectQuery={send}
+        />
       )}
 
       {/* Toast Notifications */}

@@ -343,8 +343,8 @@ requirement requirements rule rules policy policies timing timings schedule proc
 """.split())
 
 
-def normalise(text: str) -> str:
-    text = correct_typos(text or "").lower()
+def normalise(text: str, fix_typos: bool = True) -> str:
+    text = (correct_typos(text or "") if fix_typos else (text or "")).lower()
     for rx, rep in _NORMALISE:
         text = rx.sub(rep, text)
     return text
@@ -488,18 +488,18 @@ stem = get_root_word
 GENERIC_HEAD_STEMS = frozenset(stem(w) for w in GENERIC_HEADS)
 
 
-def tokens(text: str, keep_stop: bool = False) -> list[str]:
+def tokens(text: str, keep_stop: bool = False, fix_typos: bool = True) -> list[str]:
     out = []
-    for t in _TOKEN.findall(normalise(text)):
+    for t in _TOKEN.findall(normalise(text, fix_typos=fix_typos)):
         if not keep_stop and t in STOPWORDS:
             continue
         out.append(stem(t))
     return out
 
 
-def bigram_tokens(text: str) -> list[str]:
+def bigram_tokens(text: str, fix_typos: bool = True) -> list[str]:
     """Unigrams + bigrams for richer BM25 phrase matching (e.g. 'hostel fee', 'registrar phone')."""
-    toks = tokens(text)
+    toks = tokens(text, fix_typos=fix_typos)
     bigrams = [f"{a}__{b}" for a, b in zip(toks, toks[1:])]
     return toks + bigrams
 
@@ -571,6 +571,10 @@ _ROUTES: list[tuple[str, re.Pattern]] = [
     ("faculty", re.compile(
         r"\b(facult\w*|professors?|teachers?|deans?|directors?|vice chancellor|vc\b|hod\b|"
         r"who teaches|who is teaching|educators?|instructors?|faculty member|ph\.?d\.? guide)\b", re.I)),
+    ("curriculum", re.compile(
+        r"\b(curricul\w*|syllabus|scheme of study|subjects?|course\s+(?:list|structure|plan)|"
+        r"year-?wise|semester-?wise|(?:1st|first|2nd|second|3rd|third|4th|fourth|final)\s*(?:year|yr)|"
+        r"sem(?:ester)?\s*(?:[1-8]|viii|vii|vi|iv|iii|ii|i|v)\b)\b", re.I)),
     ("academics", re.compile(
         r"\b(programmes?|programs?|courses?|curricul\w*|department|specializ\w*|"
         r"specialis\w*|branch|calendars?|semester|syllabus|degree|institute|"
@@ -867,5 +871,95 @@ def check_non_offered_discipline(query: str) -> str | None:
         if rx.search(q):
             return name
     return None
+
+
+_CURR_ROMAN = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6, "vii": 7, "viii": 8}
+_CURR_YEAR_PATTERNS = [
+    (re.compile(r"\b(?:1st|first|yr\s*1|year\s*1|1\s*yr)\b", re.I), 1),
+    (re.compile(r"\b(?:2nd|second|yr\s*2|year\s*2|2\s*yr)\b", re.I), 2),
+    (re.compile(r"\b(?:3rd|third|yr\s*3|year\s*3|3\s*yr)\b", re.I), 3),
+    (re.compile(r"\b(?:4th|fourth|final|yr\s*4|year\s*4|4\s*yr)\b", re.I), 4),
+]
+_CURR_SEM_RX = re.compile(r"\bsem(?:ester)?\s*[-:]?\s*(viii|vii|vi|iv|iii|ii|i|v|[1-8])\b", re.I)
+
+_CURR_INDEXED_DEPTS = [
+    (re.compile(r"\b(cse\s*\(?ai\)?|computer\s+science\s+(?:and|&|\+)\s+(?:artificial\s+intelligence|ai)|artificial\s+intelligence|ai\s*(?:&|and)?\s*ml|aiml)\b", re.I), "CSE (AI)"),
+    (re.compile(r"\b(cse|computer\s+science(?:\s+(?:and|&)\s+engineering)?)\b", re.I), "CSE"),
+    (re.compile(r"\b(bba\s*(?:in\s+)?fintech|fintech)\b", re.I), "BBA FinTech"),
+    (re.compile(r"\b(bba\s*(?:with\s+)?kpmg|kpmg)\b", re.I), "BBA KPMG"),
+    (re.compile(r"\b(ph\.?d\.?|doctorate)\b", re.I), "PhD"),
+]
+
+_CURR_UNINDEXED_DEPTS = [
+    (re.compile(r"\b(data\s+science)\b", re.I), "B.Tech CSE (Data Science)"),
+    (re.compile(r"\b(cyber\s*security|cybersecurity)\b", re.I), "B.Tech CSE (Cybersecurity)"),
+    (re.compile(r"\b(ece|electronics(?:\s+(?:and|&)\s+communication)?|vlsi)\b", re.I), "B.Tech ECE (VLSI Design)"),
+    (re.compile(r"\b(mechanical(?:\s+engineering)?)\b", re.I), "B.Tech Mechanical Engineering"),
+    (re.compile(r"\b(csbs|computer\s+science\s+and\s+business\s+systems)\b", re.I), "B.Tech CSBS"),
+    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\b", re.I), "B.Des"),
+    (re.compile(r"\b(m\.?tech|master\s+of\s+technology)\b", re.I), "M.Tech"),
+    (re.compile(r"\b(m\.?des|master\s+of\s+design)\b", re.I), "M.Des"),
+    (re.compile(r"\b(bba|bachelor\s+of\s+business\s+administration)\b", re.I), "BBA (Core / Hons.)"),
+]
+
+
+def parse_curriculum_query(question: str) -> dict:
+    """Parse department/programme, year (1-4 or 'all'), and semester (1-8) for curriculum queries."""
+    q = (question or "").strip()
+    ql = q.lower()
+
+    # Exclude non-curriculum intents (fees, eligibility, faculty, hostel, admissions, placements)
+    if re.search(r"\b(fees?|tuition|cost|scholarship|eligib\w*|admission|apply|faculty|professor|hod|dean|hostel|mess|placement|package|ctc|exam|attendance|grade|cgpa)\b", ql):
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
+
+    has_curr_kw = bool(re.search(
+        r"\b(courses?|subjects?|curricul\w*|syllabus|scheme\s+of\s+study|credits?|modules?|taught\s+in|"
+        r"(?:1st|first|2nd|second|3rd|third|4th|fourth|final)\s*(?:year|yr)|"
+        r"sem(?:ester)?\s*(?:[1-8]|viii|vii|vi|iv|iii|ii|i|v)|all\s+years)\b",
+        ql
+    ))
+    if not has_curr_kw:
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
+
+    # Avoid hijacking "what programmes and courses are offered at JKLU?"
+    if re.search(r"\b(programmes?\s+(?:and\s+courses?\s+)?offered|which\s+(?:undergraduate|postgraduate|degree)?\s*programmes?|all\s+programmes?)\b", ql) and not re.search(r"\b(year|sem|semester|syllabus|curriculum|cse|fintech|kpmg|ece|b\.?des|m\.?tech)\b", ql):
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
+
+    dept = None
+    unindexed = None
+    for rx, name in _CURR_INDEXED_DEPTS:
+        if rx.search(q):
+            dept = name
+            break
+    if not dept:
+        for rx, name in _CURR_UNINDEXED_DEPTS:
+            if rx.search(q):
+                unindexed = name
+                break
+
+    sem = None
+    m_sem = _CURR_SEM_RX.search(q)
+    if m_sem:
+        val = m_sem.group(1).lower()
+        sem = int(val) if val.isdigit() else _CURR_ROMAN.get(val)
+
+    year: int | str | None = None
+    if re.search(r"\ball\s*(?:4|four|3|three)?\s*years\b|\bcomplete\s+curriculum\b|\bfull\s+curriculum\b", ql):
+        year = "all"
+    else:
+        for rx, y in _CURR_YEAR_PATTERNS:
+            if rx.search(q):
+                year = y
+                break
+        if year is None and sem is not None:
+            year = (sem + 1) // 2
+
+    return {
+        "is_curriculum": True,
+        "department": dept,
+        "unindexed_department": unindexed,
+        "year": year,
+        "semester": sem,
+    }
 
 

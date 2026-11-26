@@ -148,8 +148,8 @@ class BM25:
         self.post: dict[str, list[tuple[int, int]]] = {}
         self.dl = np.zeros(self.n, dtype="float32")
         for i, d in enumerate(docs):
-            toks = T.bigram_tokens(d)   # unigrams + bigrams for phrase matching
-            self.dl[i] = max(len(T.tokens(d)), 1)  # length in unigrams (for normalisation)
+            toks = T.bigram_tokens(d, fix_typos=False)   # unigrams + bigrams for phrase matching
+            self.dl[i] = max(len(T.tokens(d, fix_typos=False)), 1)  # length in unigrams (for normalisation)
             tf: dict[str, int] = {}
             for t in toks:
                 tf[t] = tf.get(t, 0) + 1

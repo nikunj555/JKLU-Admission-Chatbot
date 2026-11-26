@@ -371,6 +371,27 @@ class FacultyAndChipTests(unittest.TestCase):
         self.assertIn("event: token", body)
         self.assertIn("event: done", body)
 
+    def test_curriculum_year_and_all_years(self):
+        r_yr1 = self.agent.ask("which courses are in first year of CSE")
+        self.assertEqual(r_yr1["status"], "answer")
+        self.assertEqual(r_yr1["provider"], "curriculum_index")
+        self.assertIn("Year 1", r_yr1["answer"])
+        self.assertIn("Semester 1", r_yr1["answer"])
+        self.assertIn("CS1139", r_yr1["answer"])
+        self.assertTrue(r_yr1["sources"])
+
+        r_all = self.agent.ask("Which courses are in B.Tech CSE (all years)?")
+        self.assertEqual(r_all["status"], "answer")
+        for yr in ("Year 1", "Year 2", "Year 3", "Year 4"):
+            self.assertIn(yr, r_all["answer"])
+
+        r_ambig = self.agent.ask("which courses are in first year?")
+        self.assertEqual(r_ambig["status"], "clarify")
+        self.assertTrue(r_ambig["suggestions"])
+
+        r_unindexed = self.agent.ask("which courses are in first year of ECE?")
+        self.assertEqual(r_unindexed["status"], "escalate")
+
 
 if __name__ == "__main__":
     unittest.main()

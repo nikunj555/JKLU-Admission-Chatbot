@@ -94,7 +94,7 @@ TEST_QUESTIONS_PATH = TEST_DIR / "test_questions.csv"
 
 # ------------------------------------------------------------ categories
 CATEGORIES = [
-    "admission", "academics", "hostel", "fees", "examination",
+    "admission", "curriculum", "academics", "hostel", "fees", "examination",
     "scholarships", "contact", "notices", "faculty", "general",
 ]
 

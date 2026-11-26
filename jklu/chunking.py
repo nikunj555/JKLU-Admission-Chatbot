@@ -13,6 +13,64 @@ from . import config as C
 from .utils import fingerprint
 
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'\u2018\u201c\u2022•-])")
+_ROMAN_SEM = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6, "vii": 7, "viii": 8}
+_SEM_HDR_RX = re.compile(r"(?:^|\|\s*)Semester\s*[-:]?\s*(VIII|VII|VI|IV|III|II|I|V|[1-8])\b", re.I)
+_COURSE_ROW_PIPE_RX = re.compile(
+    r"^\s*(?:\d+|[A-Z])\s*\|\s*([A-Z]{2,4}\d{3,4}|-)\s*\|\s*([^|]+?)\s*\|\s*([0-9]+-[0-9]+-[0-9]+|\d+)\b"
+)
+_COURSE_ROW_SEMI_RX = re.compile(
+    r"\b([A-Z]{2,4}\d{3,4})\b\s*[|;:-]\s*([^|;\n]{3,80})"
+)
+
+
+def _infer_curriculum_meta(doc: dict) -> tuple[bool, str | None, str | None]:
+    title = (doc.get("title") or "").strip()
+    url = (doc.get("url") or "").lower()
+    tl = title.lower()
+    if "b.tech cse (ai)" in tl or "cse_ai" in url:
+        return True, "B.Tech", "CSE (AI)"
+    if "b.tech cse" in tl or "btech-cse" in url:
+        return True, "B.Tech", "CSE"
+    if "bba fintech" in tl:
+        return True, "BBA", "BBA FinTech"
+    if "bba kpmg" in tl:
+        return True, "BBA", "BBA KPMG"
+    if "phd coursework" in tl or "phd-coursework" in url:
+        return True, "PhD", "PhD"
+    return False, None, None
+
+
+def _parse_sem_number(text: str) -> int | None:
+    m = _SEM_HDR_RX.search(text or "")
+    if not m:
+        return None
+    val = m.group(1).strip().lower()
+    if val.isdigit():
+        n = int(val)
+        return n if 1 <= n <= 8 else None
+    return _ROMAN_SEM.get(val)
+
+
+def _extract_courses_from_text(text: str) -> list[dict]:
+    courses: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = _COURSE_ROW_PIPE_RX.match(line)
+        if m:
+            code, title, credits = m.group(1).strip(), m.group(2).strip(), m.group(3).strip()
+            if title and title.lower() not in ("course name", "course title"):
+                key = (code, title.lower())
+                if key not in seen:
+                    seen.add(key)
+                    courses.append({"code": code, "title": title, "credits": credits})
+            continue
+        # BBA style: "Semester 1 ... Introduction to Fintech 4 CC Financial Accounting 4"
+        if "semester" not in line.lower() and " | " not in line:
+            continue
+    return courses
 
 
 def _units(doc: dict) -> list[tuple[str, int | None, str]]:
@@ -56,6 +114,7 @@ def chunk_document(doc: dict) -> list[dict]:
     units = _units(doc)
     if not units:
         return []
+    is_curr, prog, dept = _infer_curriculum_meta(doc)
     target, overlap = C.CHUNK_WORDS, C.CHUNK_OVERLAP_WORDS
     chunks: list[list[tuple[str, int | None, str]]] = []
     cur: list[tuple[str, int | None, str]] = []
@@ -63,7 +122,12 @@ def chunk_document(doc: dict) -> list[dict]:
     has_new = False            # does `cur` hold units not yet emitted in a chunk?
     for u in units:
         w = len(u[0].split())
-        if cur and cur_words + w > target:
+        # Never carry previous-semester rows into a new semester chunk
+        if is_curr and cur and _parse_sem_number(u[0]) is not None:
+            chunks.append(cur)
+            cur, cur_words = [], 0
+            has_new = False
+        elif cur and cur_words + w > target:
             chunks.append(cur)
             # carry the tail of the previous chunk as overlap (at least one unit kept out)
             tail: list[tuple[str, int | None, str]] = []
@@ -90,13 +154,19 @@ def chunk_document(doc: dict) -> list[dict]:
 
     n_chunks = len(chunks)
     out: list[dict] = []
+    active_sem: int | None = None
     for i, group in enumerate(chunks):
         text = "\n".join(t for t, _, _ in group).strip()
         if len(text.split()) < min(C.MIN_CHUNK_WORDS, 6) and n_chunks > 1:
             continue
         pages = [p for _, p, _ in group if p is not None]
         sec = next((h for _, _, h in group if h), "")
-        out.append({
+        if is_curr:
+            sem_here = _parse_sem_number(text)
+            if sem_here is not None:
+                active_sem = sem_here
+        courses = _extract_courses_from_text(text) if is_curr else []
+        chunk_row = {
             "chunk_id": f"{doc['doc_id']}-{i:04d}",
             "doc_id": doc["doc_id"],
             "chunk_index": i,
@@ -104,7 +174,7 @@ def chunk_document(doc: dict) -> list[dict]:
             "prev_chunk_id": f"{doc['doc_id']}-{i-1:04d}" if i > 0 else None,
             "next_chunk_id": f"{doc['doc_id']}-{i+1:04d}" if i + 1 < n_chunks else None,
             "text": text,
-            "category": doc["category"],
+            "category": "curriculum" if is_curr else doc["category"],
             "title": doc["title"],
             "section": sec,
             "source_url": doc["url"],
@@ -116,7 +186,16 @@ def chunk_document(doc: dict) -> list[dict]:
             "fetched_at": doc.get("fetched_at"),
             "n_words": len(text.split()),
             "is_table": bool(" | " in text or (text.count(":") >= 2 and ";" in text)),
-        })
+        }
+        if is_curr:
+            chunk_row["programme"] = prog
+            chunk_row["department"] = dept
+            chunk_row["semester"] = active_sem
+            chunk_row["year"] = ((active_sem + 1) // 2) if active_sem else None
+            if courses:
+                chunk_row["courses"] = courses
+                chunk_row["course_codes"] = [c["code"] for c in courses if c["code"] != "-"]
+        out.append(chunk_row)
     return out
 
 

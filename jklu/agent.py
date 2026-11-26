@@ -735,6 +735,12 @@ class JKLUAgent:
             fac_status, fac_ans, fac_sources, fac_meta = faculty_res
             return done(status=fac_status, answer=fac_ans, sources=fac_sources, **fac_meta)
 
+        # Instant, structured resolution for department/year/semester curriculum queries
+        curr_res = self._curriculum_direct_answer(query, extracted_q, history)
+        if curr_res:
+            c_status, c_ans, c_sources, c_meta = curr_res
+            return done(status=c_status, answer=c_ans, sources=c_sources, **c_meta)
+
         # Multi-query retrieval formulations: contextualized, extracted, raw, and sub-questions
         queries_to_search = [query]
         if extracted_q.lower() != query.lower():
@@ -1142,3 +1148,158 @@ class JKLUAgent:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
         except Exception as e:
             log.warning("Failed to log unanswered query: %s", e)
+
+    def _curriculum_direct_answer(
+        self, raw_q: str, extracted_q: str, history: list[dict] | None = None
+    ) -> tuple[str, str, list[dict], dict] | None:
+        """Structured Year -> Semester -> Course list answering from tagged curriculum chunks."""
+        info = T.parse_curriculum_query(extracted_q or raw_q)
+        if not info.get("is_curriculum"):
+            info = T.parse_curriculum_query(raw_q)
+        if not info.get("is_curriculum"):
+            return None
+
+        dept = info.get("department")
+        unindexed = info.get("unindexed_department")
+        year = info.get("year")
+        semester = info.get("semester")
+
+        if unindexed and not dept:
+            lead = (
+                f"Semester-wise curriculum / course syllabus PDFs for **{unindexed}** are not currently available "
+                f"in the indexed JKLU documents (only programme overview details are indexed, and the 2025–26 IET Handbook PDF is a scanned document). "
+                f"Please contact the university directly for the detailed syllabus:"
+            )
+            return (
+                "escalate",
+                self._escalation_text(["academics"], lead),
+                [],
+                {
+                    "confidence": 0.95,
+                    "category": "curriculum",
+                    "provider": "curriculum_index",
+                    "reason": f"No semester-wise syllabus indexed for {unindexed}",
+                    "contacts": self._contacts_for(["academics"]),
+                },
+            )
+
+        if not dept:
+            suffix = f" for Year {year}" if isinstance(year, int) else (f" for Semester {semester}" if semester else "")
+            clarify_msg = f"Which department or programme would you like to view the curriculum{suffix} for?"
+            depts = [
+                ("B.Tech CSE", f"Which courses are in B.Tech CSE{suffix or ' (all years)'}?"),
+                ("B.Tech CSE (AI)", f"Which courses are in B.Tech CSE (AI){suffix or ' (all years)'}?"),
+                ("BBA FinTech", f"Which courses are in BBA FinTech{suffix or ' (all years)'}?"),
+                ("BBA KPMG", f"Which courses are in BBA KPMG{suffix or ' (all years)'}?"),
+            ]
+            return (
+                "clarify",
+                clarify_msg,
+                [],
+                {
+                    "clarification": clarify_msg,
+                    "suggestions": [{"label": lbl, "question": q} for lbl, q in depts],
+                    "confidence": 0.75,
+                    "category": "curriculum",
+                    "provider": "curriculum_index",
+                    "reason": "curriculum query missing department",
+                },
+            )
+
+        dept_chunks = [
+            c for c in self.kb.chunks
+            if c.get("category") == "curriculum" and c.get("department") == dept
+        ]
+        if not dept_chunks:
+            return None
+
+        filtered = dept_chunks
+        if semester is not None:
+            filtered = [c for c in dept_chunks if c.get("semester") == semester]
+        elif isinstance(year, int):
+            filtered = [c for c in dept_chunks if c.get("year") == year]
+
+        # Prefer chunks with structured course tables or semester headers
+        structured = [c for c in filtered if c.get("courses") or c.get("semester") is not None]
+        if not structured:
+            scope = f"Semester {semester}" if semester else (f"Year {year}" if isinstance(year, int) else "this programme")
+            lead = f"I could not find course listings for **{dept} ({scope})** in the indexed curriculum documents. Please contact the university directly:"
+            return (
+                "escalate",
+                self._escalation_text(["academics"], lead),
+                [],
+                {
+                    "confidence": 0.9,
+                    "category": "curriculum",
+                    "provider": "curriculum_index",
+                    "reason": f"Missing {scope} data for {dept}",
+                    "contacts": self._contacts_for(["academics"]),
+                },
+            )
+
+        # Group by (year, semester)
+        from collections import defaultdict
+        by_sem: dict[tuple[int, int], list[dict]] = defaultdict(list)
+        src_chunks: list[dict] = []
+        seen_cid: set[str] = set()
+        for c in structured:
+            sem_num = c.get("semester")
+            yr_num = c.get("year") or ((sem_num + 1) // 2 if sem_num else 1)
+            if sem_num is None:
+                continue
+            by_sem[(yr_num, sem_num)].append(c)
+            if c["chunk_id"] not in seen_cid and len(src_chunks) < 6:
+                seen_cid.add(c["chunk_id"])
+                src_chunks.append(c)
+
+        if not by_sem:
+            return None
+
+        title_scope = (
+            f"Semester {semester}" if semester is not None
+            else (f"Year {year}" if isinstance(year, int) else "All Years")
+        )
+        lines = [f"### {dept} — Course Curriculum ({title_scope}) [1]", ""]
+
+        cur_yr = None
+        for (yr_num, sem_num) in sorted(by_sem.keys()):
+            if yr_num != cur_yr:
+                cur_yr = yr_num
+                lines.append(f"#### Year {yr_num}")
+            lines.append(f"**Semester {sem_num}**:")
+            sem_courses: list[dict] = []
+            seen_course: set[tuple[str, str]] = set()
+            for sc in by_sem[(yr_num, sem_num)]:
+                for cr in sc.get("courses") or []:
+                    k = (cr.get("code", ""), cr.get("title", "").lower())
+                    if k not in seen_course:
+                        seen_course.add(k)
+                        sem_courses.append(cr)
+            if sem_courses:
+                for cr in sem_courses:
+                    code_str = f"`{cr['code']}` " if cr.get("code") and cr["code"] != "-" else ""
+                    cred_str = f" *(L-T-P / Credits: {cr['credits']})*" if cr.get("credits") else ""
+                    lines.append(f"- {code_str}**{cr['title']}**{cred_str}")
+            else:
+                # Fallback for narrative curriculum tables (e.g. BBA FinTech / KPMG)
+                snippet_txt = re.sub(r"\s+", " ", by_sem[(yr_num, sem_num)][0].get("text", "")).strip()
+                lines.append(f"- {snippet_txt[:350]} [1]")
+            lines.append("")
+
+        sources = self._sources(src_chunks)
+        return (
+            "answer",
+            "\n".join(lines).strip(),
+            sources,
+            {
+                "confidence": 0.99,
+                "category": "curriculum",
+                "provider": "curriculum_index",
+                "reason": f"structured curriculum lookup for {dept} ({title_scope})",
+                "suggestions": [
+                    {"label": "Admissions & Eligibility", "question": f"What are the eligibility criteria for {dept}?"},
+                    {"label": "Fee Structure", "question": f"What is the tuition fee for {dept}?"},
+                    {"label": "Faculty", "question": f"Who are the faculty members in {dept}?"},
+                ],
+            },
+        )

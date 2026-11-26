@@ -39,6 +39,7 @@ interface Props {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onAsk: (q: string) => void;
+  onCourses: () => void;
   onSettings: () => void;
   onFeedback: () => void;
 }
@@ -53,6 +54,7 @@ export function AppSidebar({
   onSelect,
   onDelete,
   onAsk,
+  onCourses,
   onSettings,
   onFeedback,
 }: Props) {
@@ -166,7 +168,11 @@ export function AppSidebar({
                     type="button"
                     disabled={busy}
                     onClick={() => {
-                      onAsk(q);
+                      if (label === 'Courses') {
+                        onCourses();
+                      } else {
+                        onAsk(q);
+                      }
                       closeIfMobile();
                     }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-900 dark:hover:text-blue-300 disabled:opacity-50"
