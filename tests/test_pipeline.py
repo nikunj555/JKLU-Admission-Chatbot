@@ -392,6 +392,24 @@ class FacultyAndChipTests(unittest.TestCase):
         r_unindexed = self.agent.ask("which courses are in first year of ECE?")
         self.assertEqual(r_unindexed["status"], "escalate")
 
+    def test_fee_all_programmes_and_no_hostel_leak(self):
+        for q in (
+            "fees for all programmes",
+            "what is the fees structure for all 4 years",
+            "fee structure for all 4 years",
+            "B.Tech CSE fee per year",
+        ):
+            r = self.agent.ask(q)
+            self.assertEqual(r["status"], "answer", q)
+            ans_low = r["answer"].lower()
+            self.assertNotIn("double sharing ac", ans_low, f"Hostel leaked into fee answer for {q}")
+            self.assertNotIn("quad lower ac", ans_low, f"Hostel leaked into fee answer for {q}")
+            self.assertTrue(r["sources"], q)
+
+        r_amb = self.agent.ask("what is the fees structure for all 4")
+        self.assertEqual(r_amb["status"], "clarify")
+        self.assertTrue(r_amb["suggestions"])
+
 
 if __name__ == "__main__":
     unittest.main()

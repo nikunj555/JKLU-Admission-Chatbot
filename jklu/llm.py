@@ -500,7 +500,7 @@ def _extract_fee_details(question: str, target_prog: str | None, passages: list[
     if not is_fee_q:
         return None
 
-    wants_hostel = any(w in q_low for w in ("hostel", "residence", "mess", "living", "stay", "accommodation", "room", "total", "full", "complete"))
+    wants_hostel = any(w in q_low for w in ("hostel", "residence", "mess", "living", "stay", "accommodation", "room"))
     sections = []
     prog_found = False
 

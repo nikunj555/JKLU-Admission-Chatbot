@@ -741,6 +741,12 @@ class JKLUAgent:
             c_status, c_ans, c_sources, c_meta = curr_res
             return done(status=c_status, answer=c_ans, sources=c_sources, **c_meta)
 
+        # Instant, structured resolution for multi-programme / ambiguous fee queries
+        fee_res = self._fee_direct_answer(query, extracted_q)
+        if fee_res:
+            f_status, f_ans, f_sources, f_meta = fee_res
+            return done(status=f_status, answer=f_ans, sources=f_sources, **f_meta)
+
         # Multi-query retrieval formulations: contextualized, extracted, raw, and sub-questions
         queries_to_search = [query]
         if extracted_q.lower() != query.lower():
@@ -1082,7 +1088,10 @@ class JKLUAgent:
                         contacts=self._contacts_for(routed), **meta)
 
         # Generate answer or use verified memory answer if present
-        if memory_match and not person_mismatch and memory_match.tier in ("exact", "strong") and memory_match.entry.verified_answer and not analysis.unrelated_parts:
+        wants_hostel_q = any(w in q_comb for w in ("hostel", "mess", "residence", "room", "dorm", "accommodation"))
+        mem_ans_low = (memory_match.entry.verified_answer or "").lower() if memory_match else ""
+        mem_hostel_mismatch = bool(memory_match and not wants_hostel_q and ("residence & hostel" in mem_ans_low or "double sharing ac" in mem_ans_low))
+        if memory_match and not person_mismatch and not mem_hostel_mismatch and memory_match.tier in ("exact", "strong") and memory_match.entry.verified_answer and not analysis.unrelated_parts:
             answer = memory_match.entry.verified_answer
             provider = "self_rag_memory"
             err = None
@@ -1300,6 +1309,118 @@ class JKLUAgent:
                     {"label": "Admissions & Eligibility", "question": f"What are the eligibility criteria for {dept}?"},
                     {"label": "Fee Structure", "question": f"What is the tuition fee for {dept}?"},
                     {"label": "Faculty", "question": f"Who are the faculty members in {dept}?"},
+                ],
+            },
+        )
+
+    def _fee_direct_answer(self, raw_q: str, extracted_q: str) -> tuple[str, str, list[dict], dict] | None:
+        """Handle ambiguous 'all 4' fee queries (clarify) and multi-programme fee table queries."""
+        ql = (extracted_q or raw_q).lower().strip()
+        if not any(w in ql for w in ("fee", "fees", "tuition", "cost", "charges")):
+            return None
+        if any(w in ql for w in ("hostel", "mess", "residence", "refund", "withdrawal", "scholarship", "waiver")):
+            return None
+
+        # Ambiguous "all 4" without "years" or a specific programme name
+        has_prog = bool(re.search(r"\b(b\.?tech|btech|m\.?tech|mtech|b\.?des|bdes|m\.?des|mdes|bba|ph\.?d|phd)\b", ql))
+        if re.search(r"\ball\s+4\b", ql) and not re.search(r"\b(years?|yrs?|programmes?|programs?)\b", ql) and not has_prog:
+            clarify_msg = "Could you clarify what you mean by 'all 4'? Choose one of the options below:"
+            return (
+                "clarify",
+                clarify_msg,
+                [],
+                {
+                    "clarification": clarify_msg,
+                    "suggestions": [
+                        {"label": "All Programmes Fee Table", "question": "What is the fee structure for all programmes?"},
+                        {"label": "B.Tech (All 4 Years)", "question": "What is the B.Tech fee structure for all 4 years?"},
+                        {"label": "B.Des (All 4 Years)", "question": "What is the B.Des fee structure for all 4 years?"},
+                        {"label": "Hostel & Mess Charges", "question": "What are the hostel and mess fees?"},
+                    ],
+                    "confidence": 0.75,
+                    "category": "fees",
+                    "provider": "fee_table",
+                    "reason": "ambiguous fee query ('all 4')",
+                },
+            )
+
+        is_all_prog = any(w in ql for w in ("all programmes", "all programs", "every programme", "every program", "complete fee structure"))
+        is_all_4_years = bool(re.search(r"\ball\s+(?:4|four)\s+years?\b", ql)) and not has_prog
+        if not (is_all_prog or is_all_4_years):
+            return None
+
+        fee_chunks = [c for c in self.kb.chunks if c.get("category") == "fees" and ("Programme:" in c.get("text", "") or "Programme |" in c.get("text", ""))]
+        if not fee_chunks:
+            return None
+
+        # Parse structured Programme rows across fee chunks
+        progs: dict[str, dict] = {}
+        src_chunks: list[dict] = []
+        seen_cid: set[str] = set()
+        for c in fee_chunks:
+            for line in c.get("text", "").splitlines():
+                line = line.strip()
+                if line.startswith("Programme:"):
+                    parts = [p.strip() for p in line.split(";") if ":" in p]
+                    row: dict[str, str] = {}
+                    for pt in parts:
+                        k, _, v = pt.partition(":")
+                        row[k.strip().lower()] = v.strip()
+                    pname = row.get("programme", "")
+                    if not pname:
+                        continue
+                    # Fix OCR/table wrap artifact "Bachelor of Business Administratio" / "n3*/4 Years"
+                    if "administratio" in pname.lower():
+                        pname = "Bachelor of Business Administration (BBA)"
+                    dur = row.get("duration", "—").lstrip("n")
+                    acad = row.get("academic fee (annual)", "—")
+                    tech = row.get("technology fee (annual)", "—")
+                    adm = row.get("admission fee (one time)", "—")
+                    if pname not in progs or (tech != "—" and progs[pname]["tech"] == "—"):
+                        progs[pname] = {"dur": dur, "acad": acad, "tech": tech, "adm": adm}
+                    if c["chunk_id"] not in seen_cid and len(src_chunks) < 3:
+                        seen_cid.add(c["chunk_id"])
+                        src_chunks.append(c)
+
+        if not progs:
+            return None
+
+        # Filter to 4-year programmes if user explicitly asked for "all 4 years"
+        rows_out = []
+        for pname, d in progs.items():
+            if is_all_4_years and "4" not in d["dur"]:
+                continue
+            rows_out.append((pname, d))
+        if not rows_out:
+            rows_out = list(progs.items())
+
+        heading = "### JKLU Fee Structure — 4-Year Programmes (AY 2026–27) [1]" if is_all_4_years else "### JKLU Fee Structure — All Programmes (AY 2026–27) [1]"
+        lines = [
+            heading,
+            "",
+            "| Programme | Duration | Academic Fee (Annual) | Technology Fee (Annual) | Admission Fee (One Time) |",
+            "| :--- | :--- | :--- | :--- | :--- |",
+        ]
+        for pname, d in rows_out:
+            lines.append(f"| {pname} | {d['dur']} | {d['acad']} | {d['tech']} | {d['adm']} |")
+        lines.extend([
+            "",
+            "- *Note*: Caution Deposit (One Time, Refundable) and Hostel/Mess charges are separate. KPMG Specialization Fee of INR 40,000/year (for 3 years) is additional if opted for BBA [1].",
+        ])
+
+        return (
+            "answer",
+            "\n".join(lines),
+            self._sources(src_chunks),
+            {
+                "confidence": 0.99,
+                "category": "fees",
+                "provider": "fee_table",
+                "reason": "structured multi-programme fee table from official fee schedule",
+                "suggestions": [
+                    {"label": "Scholarships & Fee Waiver", "question": "What merit scholarships are available for B.Tech students?"},
+                    {"label": "Fee Refund Policy", "question": "What is the fee refund policy if I cancel my admission?"},
+                    {"label": "Hostel & Mess Charges", "question": "What are the hostel and mess fees?"},
                 ],
             },
         )
