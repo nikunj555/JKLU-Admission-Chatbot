@@ -25,13 +25,60 @@ interface Props {
   busy: boolean;
 }
 
-// Curated follow-up prompts to suggest after successful responses
-const DEFAULT_FOLLOW_UPS = [
-  'What documents are required for admission?',
-  'What scholarships are available?',
-  'What is the next step to apply?',
-  'What are the hostel and campus facilities?',
-];
+// Contextual follow-up prompts derived from response category/content
+const FOLLOW_UPS_BY_TOPIC: Record<string, { label: string; question: string }[]> = {
+  fees: [
+    { label: 'Scholarships & Waivers', question: 'What merit scholarships are available for B.Tech students?' },
+    { label: 'Fee Refund Policy', question: 'What is the fee refund policy if I cancel my admission?' },
+    { label: 'Hostel & Mess Charges', question: 'What are the hostel and mess fees?' },
+  ],
+  hostel: [
+    { label: 'Hostel & Mess Fees', question: 'What are the hostel and mess fees?' },
+    { label: 'Hostel Curfew & Visitor Rules', question: 'What are the hostel curfew and visitor rules?' },
+    { label: 'Campus & Medical Facilities', question: 'What medical and sports facilities are available on campus?' },
+  ],
+  curriculum: [
+    { label: 'Admission Eligibility', question: 'What are the eligibility criteria for B.Tech CSE?' },
+    { label: 'Fee Structure', question: 'What is the tuition fee for B.Tech?' },
+    { label: 'CSE Faculty', question: 'Who are the faculty members in the CSE department?' },
+  ],
+  academics: [
+    { label: 'Course Curriculum', question: 'Which courses are in first year of B.Tech CSE?' },
+    { label: 'Fee Structure', question: 'What is the fee structure for all programmes?' },
+    { label: 'Placement Statistics', question: 'What are the placement statistics and top recruiters?' },
+  ],
+  scholarships: [
+    { label: 'B.Tech Fee Structure', question: 'What is the tuition fee for B.Tech?' },
+    { label: 'Scholarship Renewal Rules', question: 'What conditions must a student meet to retain a scholarship?' },
+    { label: 'Admission Process', question: 'How can I apply for admission to JKLU?' },
+  ],
+  faculty: [
+    { label: 'Course Curriculum', question: 'Which courses are in B.Tech CSE (all years)?' },
+    { label: 'Research & Labs', question: 'What research labs and centres does JKLU have?' },
+    { label: 'Admission Process', question: 'What is the admission process for B.Tech CSE?' },
+  ],
+  admission: [
+    { label: 'Required Documents', question: 'What documents are required for admission?' },
+    { label: 'Fee Structure', question: 'What is the fee structure for all programmes?' },
+    { label: 'Scholarships', question: 'What scholarships are available for B.Tech students?' },
+  ],
+  examination: [
+    { label: 'Attendance Requirement', question: 'What is the minimum attendance requirement?' },
+    { label: 'Grading & CGPA Rules', question: 'How are semester grades and CGPA calculated?' },
+    { label: 'Contact Academic Office', question: 'How do I contact the Registrar or Admissions office?' },
+  ],
+};
+
+function contextualFollowUps(category?: string | null, answer?: string): { label: string; question: string }[] {
+  const cat = (category || '').toLowerCase();
+  if (cat && FOLLOW_UPS_BY_TOPIC[cat]) return FOLLOW_UPS_BY_TOPIC[cat];
+  const ans = (answer || '').toLowerCase();
+  if (ans.includes('tuition') || ans.includes('inr') || ans.includes('fee')) return FOLLOW_UPS_BY_TOPIC.fees;
+  if (ans.includes('hostel') || ans.includes('curfew')) return FOLLOW_UPS_BY_TOPIC.hostel;
+  if (ans.includes('semester') || ans.includes('curriculum')) return FOLLOW_UPS_BY_TOPIC.curriculum;
+  if (ans.includes('scholarship') || ans.includes('waiver')) return FOLLOW_UPS_BY_TOPIC.scholarships;
+  return FOLLOW_UPS_BY_TOPIC.admission;
+}
 
 function Thinking() {
   return (
@@ -100,7 +147,7 @@ export const ChatMessage = memo(function ChatMessage({
   const followUps =
     res?.suggestions && res.suggestions.length > 0
       ? res.suggestions.slice(0, 3).map((s) => ({ label: s.label, question: s.question }))
-      : DEFAULT_FOLLOW_UPS.slice(0, 3).map((q) => ({ label: q, question: q }));
+      : contextualFollowUps(res?.category, res?.answer);
 
   return (
     <article

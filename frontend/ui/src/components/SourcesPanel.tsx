@@ -68,6 +68,7 @@ export function SourcesPanel({ id, sources, open, onToggle, highlight }: Props) 
                 s.category ? CATEGORY_LABEL[s.category] ?? s.category : null,
                 pageLabel(s),
                 s.academic_year,
+                s.fetched_at ? `Updated ${String(s.fetched_at).slice(0, 10)}` : null,
               ].filter(Boolean);
 
               return (

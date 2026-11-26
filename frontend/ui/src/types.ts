@@ -10,6 +10,7 @@ export interface Source {
   page_end?: number | null;
   section?: string | null;
   academic_year?: string | null;
+  fetched_at?: string | null;
   source_type?: string | null;
   snippet?: string;
 }
@@ -20,6 +21,7 @@ export interface ChatResponse {
   status: ChatStatus;
   answer: string;
   clarification?: string | null;
+  category?: string | null;
   reason?: string;
   sources: Source[];
   suggestions: Suggestion[];

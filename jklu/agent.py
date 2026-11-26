@@ -581,7 +581,8 @@ class JKLUAgent:
             out.append({
                 "n": i, "title": p.get("title"), "url": p.get("source_url"), "category": p.get("category"),
                 "page": p.get("page"), "page_end": p.get("page_end"), "section": p.get("section") or None,
-                "academic_year": p.get("academic_year"), "source_type": p.get("source_type"),
+                "academic_year": p.get("academic_year"), "fetched_at": p.get("fetched_at"),
+                "source_type": p.get("source_type"),
                 "score": round(float(p.get("dense_score") if p.get("dense_score") is not None
                                      else p.get("fused_score", 0.0)), 4),
                 "snippet": _snippet(p["text"]),

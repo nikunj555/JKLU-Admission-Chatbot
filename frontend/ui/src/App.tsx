@@ -128,12 +128,12 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {hasChat && (
               <button
                 type="button"
                 onClick={handleNewChatClick}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 title="Start a new chat"
               >
                 <MessageSquarePlus size={14} className="text-blue-800 dark:text-blue-400" />
@@ -144,7 +144,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => void refresh()}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
                 online
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/60 dark:text-emerald-300'
                   : online === false
@@ -155,18 +155,18 @@ export default function App() {
               title="Click to refresh status"
             >
               <span
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2 w-2 shrink-0 rounded-full ${
                   online ? 'bg-emerald-600' : online === false ? 'bg-rose-600' : 'bg-slate-400'
                 }`}
                 aria-hidden="true"
               />
               <span className="hidden sm:inline">
                 {online === null
-                  ? 'Waking up the assistant…'
+                  ? 'Connecting…'
                   : online
                   ? health?.chunks
-                    ? `Knowledge base online · ${health.chunks.toLocaleString()} verified passages`
-                    : 'Online'
+                    ? `KB online · ${health.chunks.toLocaleString()} passages`
+                    : 'KB online'
                   : 'Server offline'}
               </span>
               <span className="sm:hidden">{online ? 'Online' : 'Offline'}</span>
