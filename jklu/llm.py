@@ -224,8 +224,6 @@ def _groq(system: str, user: str, model: str | None = None) -> str:
     try:
         choice = data["choices"][0]["message"]
         content = choice.get("content") or ""
-        if not content and choice.get("reasoning"):
-            content = choice.get("reasoning")
         return content.strip()
     except Exception as exc:
         raise LLMError("unexpected Groq response shape") from exc
@@ -1476,6 +1474,33 @@ def _provider_model(provider: str, custom_model: str | None = None) -> str:
     }.get(provider, "?")
 
 
+def ensure_complete_sentence(text: str) -> str:
+    """Trim any mid-sentence truncation so answers always end on a complete sentence or list/table item."""
+    t = (text or "").rstrip()
+    if not t:
+        return t
+    last_line = t.splitlines()[-1].strip()
+    # Complete if it ends with terminal punctuation, citation [n], markdown table row, or closing bold/code
+    if re.search(r"[.!?](?:\s*\[\d+\])?[\"'”’\)\*`]*$", last_line) or (last_line.startswith("|") and last_line.endswith("|")):
+        return t
+    # If there are multiple lines and only the last line is truncated, drop the incomplete last line if previous line is complete
+    lines = t.splitlines()
+    if len(lines) > 1:
+        prev = "\n".join(lines[:-1]).rstrip()
+        prev_last = prev.splitlines()[-1].strip() if prev else ""
+        if prev_last and (
+            re.search(r"[.!?](?:\s*\[\d+\])?[\"'”’\)\*`]*$", prev_last)
+            or prev_last.startswith(("-", "*", "|"))
+            or re.match(r"^\d+\.\s+", prev_last)
+        ):
+            return prev
+    # Otherwise trim back to the last sentence-ending punctuation
+    m = list(re.finditer(r"[.!?](?:\s*\[\d+\])?", t))
+    if m:
+        return t[:m[-1].end()].rstrip()
+    return t + "."
+
+
 class Generator:
     def __init__(self, provider: str | None = None, model: str | None = None):
         self.provider = resolve_provider(provider)
@@ -1516,7 +1541,7 @@ class Generator:
                     self.last_timings["llm_total_ms"] = llm_dur
                     self.last_timings["llm_time_to_first_token_ms"] = llm_dur
                     if text:
-                        return text, self.provider, None
+                        return ensure_complete_sentence(text), self.provider, None
                     err = "empty response"
                 except LLMError as exc:
                     err = str(exc)
@@ -1526,8 +1551,8 @@ class Generator:
                 except Exception as exc:  # pragma: no cover
                     err = f"{type(exc).__name__}: {exc}"
                 log.warning("LLM call failed (%s) - using extractive answer", err[:160])
-                return extractive_answer(question, passages), "extractive", err
-        return extractive_answer(question, passages), "extractive", None
+                return ensure_complete_sentence(extractive_answer(question, passages)), "extractive", err
+        return ensure_complete_sentence(extractive_answer(question, passages)), "extractive", None
 
     def direct(self, question: str) -> str | None:
         """No-retrieval baseline used by the evaluation (returns None without an API key)."""

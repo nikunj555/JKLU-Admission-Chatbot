@@ -151,8 +151,8 @@ OPENROUTER_BASE_URL = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.
 CUSTOM_LLM_BASE_URL = os.environ.get("CUSTOM_LLM_BASE_URL", "")
 CUSTOM_LLM_MODEL = os.environ.get("CUSTOM_LLM_MODEL", "")
 LLM_TIMEOUT = _env_int("JKLU_LLM_TIMEOUT", 8)
-LLM_MAX_TOKENS = _env_int("JKLU_LLM_MAX_TOKENS", _env_int("LLM_MAX_TOKENS", 400))
-MAX_HISTORY_TURNS = _env_int("JKLU_MAX_HISTORY_TURNS", _env_int("MAX_HISTORY_TURNS", 4))
+LLM_MAX_TOKENS = _env_int("JKLU_LLM_MAX_TOKENS", _env_int("LLM_MAX_TOKENS", 1200))
+MAX_HISTORY_TURNS = _env_int("MAX_HISTORY_TURNS", _env_int("JKLU_MAX_HISTORY_TURNS", 4))
 
 # ------------------------------------------------------------ servers
 API_HOST = os.environ.get("JKLU_API_HOST", "127.0.0.1")

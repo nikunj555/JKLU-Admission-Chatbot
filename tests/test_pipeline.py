@@ -410,6 +410,22 @@ class FacultyAndChipTests(unittest.TestCase):
         self.assertEqual(r_amb["status"], "clarify")
         self.assertTrue(r_amb["suggestions"])
 
+    def test_answers_end_on_complete_sentence_or_item(self):
+        import re
+        from jklu.llm import ensure_complete_sentence
+        trimmed = ensure_complete_sentence("Hostel has 24/7 Wi-Fi. It also provides maintenance support, an")
+        self.assertEqual(trimmed, "Hostel has 24/7 Wi-Fi.")
+        for q in ("What is the hostel policy?", "What is the annual academic fee for B.Tech?"):
+            r = self.agent.ask(q)
+            self.assertEqual(r["status"], "answer")
+            last_line = r["answer"].strip().splitlines()[-1].strip()
+            ok = bool(
+                re.search(r"[.!?](?:\s*\[\d+\])?[\"'”’\)\*`]*$", last_line)
+                or last_line.startswith(("-", "*", "|"))
+                or re.match(r"^\d+\.\s+", last_line)
+            )
+            self.assertTrue(ok, f"Truncated ending on '{q}': {last_line!r}")
+
 
 if __name__ == "__main__":
     unittest.main()
