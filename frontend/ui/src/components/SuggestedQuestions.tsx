@@ -2,7 +2,6 @@ import {
   Award,
   BookOpen,
   Building2,
-  CalendarDays,
   FileCheck2,
   GraduationCap,
   PhoneCall,
@@ -45,15 +44,6 @@ export const ADMISSION_CATEGORIES: CategoryGroup[] = [
     questions: [
       'What scholarships are available for B.Tech students?',
       'What are the tuition fees and other charges?',
-    ],
-  },
-  {
-    id: 'dates',
-    name: 'Dates & Deadlines',
-    icon: CalendarDays,
-    questions: [
-      'What are the important admission deadlines?',
-      'When does the academic calendar or semester start?',
     ],
   },
   {

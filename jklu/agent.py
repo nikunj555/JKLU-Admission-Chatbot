@@ -1108,6 +1108,9 @@ class JKLUAgent:
             return done(status="escalate", answer=self._escalation_text(routed, lead), provider=provider,
                         contacts=self._contacts_for(routed),
                         **{**meta, "reason": "LLM judged the evidence insufficient"})
+        if re.search(r"\b(deadline|last\s+date|important\s+date|academic\s+calendar|when\s+does\s+.*(?:start|begin|close|open)|start\s+date|end\s+date)\b", q_comb):
+            if "confirm with the admissions office" not in answer.lower():
+                answer = answer.rstrip() + "\n\n*Please confirm with the admissions office for the latest official dates.*"
         used, numbers = self._cited(answer, passages, intent=T.classify_query_intent(extracted_q))
         timings["post_processing_ms"] = round((time.perf_counter() - t_post) * 1000, 2)
         return done(status="answer", answer=answer, sources=self._sources(used, numbers),

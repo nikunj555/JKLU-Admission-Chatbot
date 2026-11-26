@@ -30,7 +30,6 @@ def extract_sidebar_chips() -> list[dict[str, str]]:
             {"label": "Eligibility", "q": "What are the eligibility criteria for B.Tech and other programmes?"},
             {"label": "Fees", "q": "What is the complete fee structure and tuition fees?"},
             {"label": "Scholarships", "q": "What merit scholarships and financial aid are available?"},
-            {"label": "Important dates", "q": "What are the important admission deadlines and academic dates?"},
             {"label": "Faculty", "q": "Who are the faculty members in the CSE department at JKLU?"},
             {"label": "Campus life", "q": "What are the hostel and campus facilities like?"},
         ]

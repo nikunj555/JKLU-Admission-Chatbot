@@ -2,7 +2,6 @@ import {
   Award,
   BookOpen,
   Building2,
-  CalendarDays,
   FileCheck2,
   GraduationCap,
   MessageCircleHeart,
@@ -26,7 +25,6 @@ export const QUICK_ACCESS_TOPICS = [
   { Icon: FileCheck2, label: 'Eligibility', q: 'What are the eligibility criteria for B.Tech and other programmes?' },
   { Icon: Wallet, label: 'Fees', q: 'What is the complete fee structure and tuition fees?' },
   { Icon: Award, label: 'Scholarships', q: 'What merit scholarships and financial aid are available?' },
-  { Icon: CalendarDays, label: 'Important dates', q: 'What are the important admission deadlines and academic dates?' },
   { Icon: Users, label: 'Faculty', q: 'Who are the faculty members in the CSE department at JKLU?' },
   { Icon: Building2, label: 'Campus life', q: 'What are the hostel and campus facilities like?' },
 ];

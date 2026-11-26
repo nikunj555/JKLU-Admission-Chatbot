@@ -355,7 +355,7 @@ class FacultyAndChipTests(unittest.TestCase):
     def test_sidebar_chips_audit(self):
         from scripts.audit_chips import extract_sidebar_chips
         chips = extract_sidebar_chips()
-        self.assertEqual(len(chips), 8)
+        self.assertEqual(len(chips), 7)
         for c in chips:
             r = self.agent.ask(c["q"])
             self.assertEqual(r["status"], "answer", f"Failed on chip: {c['label']}")
