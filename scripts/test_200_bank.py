@@ -11,6 +11,10 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 
 TEST_BANK = {
     "1. Admission process and application": [

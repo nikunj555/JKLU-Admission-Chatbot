@@ -300,18 +300,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nStopped.")
         sys.exit(0)
-
-
-
-
-
-
-
-
-
-
-# 1. Navigate to the project root directory:
-# cd "c:\Users\Nikunj katta\Downloads\JKLU_Project (1)\JKLU_Project"
-
-# 2. Run the application using the project virtual environment (skipping redundant re-ingestion):
-# .\.venv\Scripts\python.exe run.py --skip-ingest
