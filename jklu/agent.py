@@ -185,7 +185,7 @@ class JKLUAgent:
                 m = re.search(r"(\+?91[\s-]?8302223344|\+?91[\s-]?830\s*222\s*3344|8302223344)", t)
                 if m:
                     cur = offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})
-                    cur["phone"] = m.group(0).strip()
+                    cur["phone"] = "+91 83022 23344"
             if "admissions@jklu.edu.in" in t.lower():
                 cur = offices.setdefault("Admissions", {"office": "Admissions", "phone": None, "email": None})
                 cur["email"] = "admissions@jklu.edu.in"
@@ -1171,27 +1171,57 @@ class JKLUAgent:
 
         dept = info.get("department")
         unindexed = info.get("unindexed_department")
+        ambig_prog = info.get("ambiguous_programme")
         year = info.get("year")
         semester = info.get("semester")
 
-        if unindexed and not dept:
-            lead = (
-                f"Semester-wise curriculum / course syllabus PDFs for **{unindexed}** are not currently available "
-                f"in the indexed JKLU documents (only programme overview details are indexed, and the 2025–26 IET Handbook PDF is a scanned document). "
-                f"Please contact the university directly for the detailed syllabus:"
-            )
+        # Ambiguous programme without specialisation or year/semester -> clarify chips
+        if ambig_prog == "BBA":
+            clarify_msg = "Which BBA specialisation would you like to view the curriculum for?"
+            opts = [
+                ("BBA (General)", "Which courses are in BBA (all years)?"),
+                ("BBA FinTech", "Which courses are in BBA FinTech (all years)?"),
+                ("BBA KPMG", "Which courses are in BBA KPMG?"),
+                ("BBA Honours", "What are the courses in BBA Honours?"),
+            ]
             return (
-                "escalate",
-                self._escalation_text(["academics"], lead),
+                "clarify",
+                clarify_msg,
                 [],
                 {
-                    "confidence": 0.95,
+                    "clarification": clarify_msg,
+                    "suggestions": [{"label": lbl, "question": q} for lbl, q in opts],
+                    "confidence": 0.75,
                     "category": "curriculum",
                     "provider": "curriculum_index",
-                    "reason": f"No semester-wise syllabus indexed for {unindexed}",
-                    "contacts": self._contacts_for(["academics"]),
+                    "reason": "ambiguous BBA curriculum query",
                 },
             )
+        if ambig_prog == "B.Des":
+            clarify_msg = "Which B.Des specialisation would you like to view the curriculum for?"
+            opts = [
+                ("Product Design", "Which courses are in B.Des Product Design (all years)?"),
+                ("Interaction Design", "Which courses are in B.Des Interaction Design (all years)?"),
+                ("Interdisciplinary Design", "Which courses are in B.Des Interdisciplinary Design (all years)?"),
+                ("Integrated Communication Design", "Which courses are in B.Des Integrated Communication Design (all years)?"),
+            ]
+            return (
+                "clarify",
+                clarify_msg,
+                [],
+                {
+                    "clarification": clarify_msg,
+                    "suggestions": [{"label": lbl, "question": q} for lbl, q in opts],
+                    "confidence": 0.75,
+                    "category": "curriculum",
+                    "provider": "curriculum_index",
+                    "reason": "ambiguous B.Des curriculum query",
+                },
+            )
+
+        # Unindexed department -> fall back to hybrid retrieval instead of fast-escalating
+        if unindexed and not dept:
+            return None
 
         if not dept:
             suffix = f" for Year {year}" if isinstance(year, int) else (f" for Semester {semester}" if semester else "")
@@ -1200,7 +1230,7 @@ class JKLUAgent:
                 ("B.Tech CSE", f"Which courses are in B.Tech CSE{suffix or ' (all years)'}?"),
                 ("B.Tech CSE (AI)", f"Which courses are in B.Tech CSE (AI){suffix or ' (all years)'}?"),
                 ("BBA FinTech", f"Which courses are in BBA FinTech{suffix or ' (all years)'}?"),
-                ("BBA KPMG", f"Which courses are in BBA KPMG{suffix or ' (all years)'}?"),
+                ("B.Des Product Design", f"Which courses are in B.Des Product Design{suffix or ' (all years)'}?"),
             ]
             return (
                 "clarify",
@@ -1216,36 +1246,63 @@ class JKLUAgent:
                 },
             )
 
+        # 3-year programme out-of-range check (e.g. BBA / BBA FinTech 4th year)
+        if dept in ("BBA", "BBA FinTech", "BBA KPMG") and ((isinstance(year, int) and year > 3) or (semester is not None and semester > 6)):
+            msg = (
+                f"**{dept}** is a **3-year (6-semester)** undergraduate programme at JK Lakshmipat University, "
+                f"so Year 4 / Semester 7–8 does not apply to the 3-year {dept} track.\n\n"
+                f"*(Note: JKLU also offers a 4-year **BBA (Honours)** pathway; please contact the Admissions Office at "
+                f"+91 83022 23344 or admissions@jklu.edu.in for 4th-year Honours course details.)*"
+            )
+            return (
+                "answer",
+                msg,
+                [],
+                {
+                    "confidence": 0.95,
+                    "category": "curriculum",
+                    "provider": "curriculum_index",
+                    "reason": f"{dept} is a 3-year programme",
+                    "suggestions": [
+                        {"label": f"{dept} Year 1–3", "question": f"Which courses are in {dept} (all years)?"},
+                        {"label": "BBA Honours", "question": "What are the courses in BBA Honours?"},
+                    ],
+                },
+            )
+
+        # Resolve generic "B.Des" + year (e.g. "B.Des year 1 courses") to Product Design foundation + chips
+        lookup_dept = "B.Des Product Design" if dept == "B.Des" else dept
+
         dept_chunks = [
             c for c in self.kb.chunks
-            if c.get("category") == "curriculum" and c.get("department") == dept
+            if c.get("category") == "curriculum" and c.get("department") == lookup_dept
         ]
         if not dept_chunks:
             return None
 
-        filtered = dept_chunks
+        # Choose latest batch with structured semester courses (prefer "current", else latest year)
+        batches = sorted({c.get("batch") or "current" for c in dept_chunks if c.get("courses") or c.get("semester") is not None})
+        chosen_batch = None
+        if "current" in batches:
+            curr_has_sem = any(c.get("semester") is not None and (c.get("batch") or "current") == "current" for c in dept_chunks)
+            if curr_has_sem:
+                chosen_batch = "current"
+        if not chosen_batch and batches:
+            chosen_batch = sorted(batches)[-1]
+
+        batch_chunks = [c for c in dept_chunks if (c.get("batch") or "current") == chosen_batch] if chosen_batch else dept_chunks
+
+        filtered = batch_chunks
         if semester is not None:
-            filtered = [c for c in dept_chunks if c.get("semester") == semester]
+            filtered = [c for c in batch_chunks if c.get("semester") == semester]
         elif isinstance(year, int):
-            filtered = [c for c in dept_chunks if c.get("year") == year]
+            filtered = [c for c in batch_chunks if c.get("year") == year]
 
         # Prefer chunks with structured course tables or semester headers
         structured = [c for c in filtered if c.get("courses") or c.get("semester") is not None]
         if not structured:
-            scope = f"Semester {semester}" if semester else (f"Year {year}" if isinstance(year, int) else "this programme")
-            lead = f"I could not find course listings for **{dept} ({scope})** in the indexed curriculum documents. Please contact the university directly:"
-            return (
-                "escalate",
-                self._escalation_text(["academics"], lead),
-                [],
-                {
-                    "confidence": 0.9,
-                    "category": "curriculum",
-                    "provider": "curriculum_index",
-                    "reason": f"Missing {scope} data for {dept}",
-                    "contacts": self._contacts_for(["academics"]),
-                },
-            )
+            # Fall back to normal hybrid retrieval instead of escalating immediately
+            return None
 
         # Group by (year, semester)
         from collections import defaultdict
@@ -1269,7 +1326,9 @@ class JKLUAgent:
             f"Semester {semester}" if semester is not None
             else (f"Year {year}" if isinstance(year, int) else "All Years")
         )
-        lines = [f"### {dept} — Course Curriculum ({title_scope}) [1]", ""]
+        batch_label = f" | Batch: {chosen_batch}" if chosen_batch else ""
+        display_name = "B.Des (Foundation / Product Design)" if dept == "B.Des" else lookup_dept
+        lines = [f"### {display_name} — Course Curriculum ({title_scope}{batch_label}) [1]", ""]
 
         cur_yr = None
         for (yr_num, sem_num) in sorted(by_sem.keys()):
@@ -1286,15 +1345,29 @@ class JKLUAgent:
                         seen_course.add(k)
                         sem_courses.append(cr)
             if sem_courses:
+                lines.append("")
+                lines.append("| Code / Type | Course Title | Credits / L-T-P |")
+                lines.append("| :--- | :--- | :--- |")
                 for cr in sem_courses:
-                    code_str = f"`{cr['code']}` " if cr.get("code") and cr["code"] != "-" else ""
-                    cred_str = f" *(L-T-P / Credits: {cr['credits']})*" if cr.get("credits") else ""
-                    lines.append(f"- {code_str}**{cr['title']}**{cred_str}")
+                    code_str = cr.get("code") if cr.get("code") and cr["code"] != "-" else "—"
+                    cred_str = cr.get("credits") or "—"
+                    lines.append(f"| {code_str} | {cr['title']} | {cred_str} |")
             else:
-                # Fallback for narrative curriculum tables (e.g. BBA FinTech / KPMG)
                 snippet_txt = re.sub(r"\s+", " ", by_sem[(yr_num, sem_num)][0].get("text", "")).strip()
                 lines.append(f"- {snippet_txt[:350]} [1]")
             lines.append("")
+
+        suggestions = [
+            {"label": "Admissions & Eligibility", "question": f"What are the eligibility criteria for {lookup_dept}?"},
+            {"label": "Fee Structure", "question": f"What is the tuition fee for {lookup_dept}?"},
+        ]
+        other_batches = [b for b in batches if b != chosen_batch]
+        if other_batches:
+            suggestions.insert(0, {"label": f"Batch {other_batches[0]}", "question": f"Which courses are in {lookup_dept} ({other_batches[0]} batch)?"})
+        elif dept == "B.Des":
+            suggestions.insert(0, {"label": "B.Des Interaction Design", "question": "Which courses are in B.Des Interaction Design?"})
+        else:
+            suggestions.append({"label": "Faculty", "question": f"Who are the faculty members in {lookup_dept}?"})
 
         sources = self._sources(src_chunks)
         return (
@@ -1305,12 +1378,8 @@ class JKLUAgent:
                 "confidence": 0.99,
                 "category": "curriculum",
                 "provider": "curriculum_index",
-                "reason": f"structured curriculum lookup for {dept} ({title_scope})",
-                "suggestions": [
-                    {"label": "Admissions & Eligibility", "question": f"What are the eligibility criteria for {dept}?"},
-                    {"label": "Fee Structure", "question": f"What is the tuition fee for {dept}?"},
-                    {"label": "Faculty", "question": f"Who are the faculty members in {dept}?"},
-                ],
+                "reason": f"structured curriculum lookup for {lookup_dept} ({title_scope}, batch={chosen_batch})",
+                "suggestions": suggestions[:3],
             },
         )
 

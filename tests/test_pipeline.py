@@ -389,8 +389,43 @@ class FacultyAndChipTests(unittest.TestCase):
         self.assertEqual(r_ambig["status"], "clarify")
         self.assertTrue(r_ambig["suggestions"])
 
-        r_unindexed = self.agent.ask("which courses are in first year of ECE?")
-        self.assertEqual(r_unindexed["status"], "escalate")
+    def test_bba_and_bdes_curriculum(self):
+        # BBA FinTech Year 1, Year 2, All 3 Years, and 4th-year out-of-range
+        r_ft1 = self.agent.ask("Which courses are in BBA FinTech for Year 1?")
+        self.assertEqual(r_ft1["status"], "answer")
+        self.assertIn("Introduction to Fintech", r_ft1["answer"])
+        self.assertTrue(r_ft1["sources"])
+
+        r_ft_space = self.agent.ask("bba fin tech year 1")
+        self.assertEqual(r_ft_space["status"], "answer")
+        self.assertIn("introduction to fintech", r_ft_space["answer"].lower())
+
+        r_ft3 = self.agent.ask("all 3 years of BBA fintech")
+        self.assertEqual(r_ft3["status"], "answer")
+        for yr in ("Year 1", "Year 2", "Year 3"):
+            self.assertIn(yr, r_ft3["answer"])
+
+        r_ft4 = self.agent.ask("BBA FinTech 4th year")
+        self.assertEqual(r_ft4["status"], "answer")
+        self.assertIn("3-year", r_ft4["answer"].lower())
+
+        # Ambiguous BBA & B.Des
+        self.assertEqual(self.agent.ask("BBA courses")["status"], "clarify")
+        self.assertEqual(self.agent.ask("B.Des courses")["status"], "clarify")
+
+        # B.Des Year 1 & all 4 specialisations
+        r_bd1 = self.agent.ask("B.Des year 1 courses")
+        self.assertEqual(r_bd1["status"], "answer")
+        self.assertIn("Freehand Drawing", r_bd1["answer"])
+        for spec in (
+            "B.Des Product Design",
+            "B.Des Interaction Design",
+            "B.Des Interdisciplinary Design",
+            "B.Des Integrated Communication Design",
+        ):
+            r_sp = self.agent.ask(f"Which courses are in {spec} Year 2?")
+            self.assertEqual(r_sp["status"], "answer", spec)
+            self.assertIn("Year 2", r_sp["answer"], spec)
 
     def test_fee_all_programmes_and_no_hostel_leak(self):
         for q in (

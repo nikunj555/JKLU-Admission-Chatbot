@@ -296,6 +296,7 @@ def correct_typos(text: str) -> str:
         return text
     # Compress 3+ repeated characters (e.g. 'feeee' -> 'fee', 'hostellll' -> 'hostel')
     text = re.sub(r"(.)\1{2,}", r"\1\1", text)
+    text = re.sub(r"\bfin\s+tech\b", "fintech", text, flags=re.I)
     words = text.split()
     corrected = []
     for w in words:
@@ -353,7 +354,7 @@ def normalise(text: str, fix_typos: bool = True) -> str:
 _TOKEN = re.compile(r"[a-z0-9]+")
 
 _PROTECTED = frozenset({
-    "bdes", "mdes", "btech", "mtech", "bba", "phd", "ces", "ece", "eee", "cse",
+    "bdes", "mdes", "btech", "mtech", "bba", "phd", "ces", "ece", "eee", "cse", "fintech", "tech",
     "wifi", "naac", "nirf", "sgpa", "cgpa", "nata", "uceed", "cuet", "gate", "jee", "det",
     "aerospace", "civil", "mechanical", "chemical", "aeronautical", "biotechnology", "pharmacy", "medical", "agriculture",
 })
@@ -885,60 +886,52 @@ _CURR_SEM_RX = re.compile(r"\bsem(?:ester)?\s*[-:]?\s*(viii|vii|vi|iv|iii|ii|i|v
 _CURR_INDEXED_DEPTS = [
     (re.compile(r"\b(cse\s*\(?ai\)?|computer\s+science\s+(?:and|&|\+)\s+(?:artificial\s+intelligence|ai)|artificial\s+intelligence|ai\s*(?:&|and)?\s*ml|aiml)\b", re.I), "CSE (AI)"),
     (re.compile(r"\b(cse|computer\s+science(?:\s+(?:and|&)\s+engineering)?)\b", re.I), "CSE"),
-    (re.compile(r"\b(bba\s*(?:in\s+)?fintech|fintech)\b", re.I), "BBA FinTech"),
+    (re.compile(r"\b(bba\s*\(?(?:banking\s*(?:&|and)\s*)?fin\s*tech\)?|fin\s*tech)\b", re.I), "BBA FinTech"),
     (re.compile(r"\b(bba\s*(?:with\s+)?kpmg|kpmg)\b", re.I), "BBA KPMG"),
+    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\s*(?:in\s+)?product\s+design\b|\bproduct\s+design\b", re.I), "B.Des Product Design"),
+    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\s*(?:in\s+)?interaction\s+design\b|\binteraction\s+design\b", re.I), "B.Des Interaction Design"),
+    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\s*(?:in\s+)?interdisciplinary\s+design\b|\binterdisciplinary\s+design\b", re.I), "B.Des Interdisciplinary Design"),
+    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\s*(?:in\s+)?(?:integrated\s+)?communication\s+design\b|\bintegrated\s+communication\s+design\b", re.I), "B.Des Integrated Communication Design"),
     (re.compile(r"\b(ph\.?d\.?|doctorate)\b", re.I), "PhD"),
 ]
 
 _CURR_UNINDEXED_DEPTS = [
+    (re.compile(r"\b(bba\s*(?:in\s+)?entrepreneurship|entrepreneurship)\b", re.I), "BBA Entrepreneurship"),
+    (re.compile(r"\b(bba\s*hons\.?|bba\s*honours)\b", re.I), "BBA Honours"),
     (re.compile(r"\b(data\s+science)\b", re.I), "B.Tech CSE (Data Science)"),
     (re.compile(r"\b(cyber\s*security|cybersecurity)\b", re.I), "B.Tech CSE (Cybersecurity)"),
     (re.compile(r"\b(ece|electronics(?:\s+(?:and|&)\s+communication)?|vlsi)\b", re.I), "B.Tech ECE (VLSI Design)"),
     (re.compile(r"\b(mechanical(?:\s+engineering)?)\b", re.I), "B.Tech Mechanical Engineering"),
     (re.compile(r"\b(csbs|computer\s+science\s+and\s+business\s+systems)\b", re.I), "B.Tech CSBS"),
-    (re.compile(r"\b(b\.?des|bachelor\s+of\s+design)\b", re.I), "B.Des"),
     (re.compile(r"\b(m\.?tech|master\s+of\s+technology)\b", re.I), "M.Tech"),
     (re.compile(r"\b(m\.?des|master\s+of\s+design)\b", re.I), "M.Des"),
-    (re.compile(r"\b(bba|bachelor\s+of\s+business\s+administration)\b", re.I), "BBA (Core / Hons.)"),
 ]
 
 
 def parse_curriculum_query(question: str) -> dict:
     """Parse department/programme, year (1-4 or 'all'), and semester (1-8) for curriculum queries."""
     q = (question or "").strip()
-    ql = q.lower()
+    ql = re.sub(r"\bfin\s+tech\b", "fintech", q.lower())
 
     # Exclude non-curriculum intents (fees, eligibility, faculty, hostel, admissions, placements)
     if re.search(r"\b(fees?|tuition|cost|scholarship|eligib\w*|admission|apply|faculty|professor|hod|dean|hostel|mess|placement|package|ctc|exam|attendance|grade|cgpa)\b", ql):
-        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "ambiguous_programme": None, "year": None, "semester": None}
 
     has_curr_kw = bool(re.search(
         r"\b(courses?|subjects?|curricul\w*|syllabus|scheme\s+of\s+study|credits?|modules?|taught\s+in|"
-        r"(?:1st|first|2nd|second|3rd|third|4th|fourth|final)\s*(?:year|yr)|"
-        r"sem(?:ester)?\s*(?:[1-8]|viii|vii|vi|iv|iii|ii|i|v)|all\s+years)\b",
+        r"(?:1st|first|2nd|second|3rd|third|4th|fourth|final)\s*(?:year|yr)|year\s*[1-4]|"
+        r"sem(?:ester)?\s*(?:[1-8]|viii|vii|vi|iv|iii|ii|i|v)|all\s+(?:3|three|4|four)?\s*years)\b",
         ql
     ))
     if not has_curr_kw:
-        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "ambiguous_programme": None, "year": None, "semester": None}
 
     # Avoid hijacking "what programmes and courses are offered at JKLU?"
-    if re.search(r"\b(programmes?\s+(?:and\s+courses?\s+)?(?:are\s+)?offered|which\s+(?:undergraduate|postgraduate|degree)?\s*programmes?|all\s+programmes?)\b", ql) and not re.search(r"\b(year|sem|semester|syllabus|curriculum|cse|fintech|kpmg|ece|b\.?des|m\.?tech)\b", ql):
-        return {"is_curriculum": False, "department": None, "unindexed_department": None, "year": None, "semester": None}
-
-    dept = None
-    unindexed = None
-    for rx, name in _CURR_INDEXED_DEPTS:
-        if rx.search(q):
-            dept = name
-            break
-    if not dept:
-        for rx, name in _CURR_UNINDEXED_DEPTS:
-            if rx.search(q):
-                unindexed = name
-                break
+    if re.search(r"\b(programmes?\s+(?:and\s+courses?\s+)?(?:are\s+)?offered|which\s+(?:undergraduate|postgraduate|degree)?\s*programmes?|all\s+programmes?)\b", ql) and not re.search(r"\b(year|sem|semester|syllabus|curriculum|cse|fintech|kpmg|ece|b\.?des|bdes|bba|m\.?tech)\b", ql):
+        return {"is_curriculum": False, "department": None, "unindexed_department": None, "ambiguous_programme": None, "year": None, "semester": None}
 
     sem = None
-    m_sem = _CURR_SEM_RX.search(q)
+    m_sem = _CURR_SEM_RX.search(ql)
     if m_sem:
         val = m_sem.group(1).lower()
         sem = int(val) if val.isdigit() else _CURR_ROMAN.get(val)
@@ -948,16 +941,41 @@ def parse_curriculum_query(question: str) -> dict:
         year = "all"
     else:
         for rx, y in _CURR_YEAR_PATTERNS:
-            if rx.search(q):
+            if rx.search(ql):
                 year = y
                 break
         if year is None and sem is not None:
             year = (sem + 1) // 2
 
+    dept = None
+    unindexed = None
+    ambig_prog = None
+    for rx, name in _CURR_INDEXED_DEPTS:
+        if rx.search(ql):
+            dept = name
+            break
+    if not dept:
+        for rx, name in _CURR_UNINDEXED_DEPTS:
+            if rx.search(ql):
+                unindexed = name
+                break
+    if not dept and not unindexed:
+        if re.search(r"\b(bba|bachelor\s+of\s+business\s+administration)\b", ql):
+            if year is None and sem is None:
+                ambig_prog = "BBA"
+            else:
+                dept = "BBA"
+        elif re.search(r"\b(b\.?des|bdes|bachelor\s+of\s+design)\b", ql):
+            if year is None and sem is None:
+                ambig_prog = "B.Des"
+            else:
+                dept = "B.Des"
+
     return {
         "is_curriculum": True,
         "department": dept,
         "unindexed_department": unindexed,
+        "ambiguous_programme": ambig_prog,
         "year": year,
         "semester": sem,
     }

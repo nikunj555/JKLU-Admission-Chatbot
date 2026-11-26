@@ -18,26 +18,46 @@ _SEM_HDR_RX = re.compile(r"(?:^|\|\s*)Semester\s*[-:]?\s*(VIII|VII|VI|IV|III|II|
 _COURSE_ROW_PIPE_RX = re.compile(
     r"^\s*(?:\d+|[A-Z])\s*\|\s*([A-Z]{2,4}\d{3,4}|-)\s*\|\s*([^|]+?)\s*\|\s*([0-9]+-[0-9]+-[0-9]+|\d+)\b"
 )
-_COURSE_ROW_SEMI_RX = re.compile(
-    r"\b([A-Z]{2,4}\d{3,4})\b\s*[|;:-]\s*([^|;\n]{3,80})"
+_BBA_HTML_ROW_RX = re.compile(
+    r"Type of Subject:\s*([^;]+);\s*Name of Subject:\s*([^;]+);\s*Credits:\s*(\d+(?:\.\d+)?)", re.I
 )
+_BDES_HTML_ROW_RX = re.compile(
+    r"^Course Title:\s*([^;]+);\s*Credits:\s*(\d+(?:\.\d+)?)", re.I
+)
+_TOTAL_ROW_RX = re.compile(r"^(?:Total\s*\|\s*\d+|Course Title:\s*Total;\s*Credits:\s*\d+)", re.I)
 
 
-def _infer_curriculum_meta(doc: dict) -> tuple[bool, str | None, str | None]:
+def _infer_curriculum_meta(doc: dict) -> tuple[bool, str | None, str | None, str | None]:
     title = (doc.get("title") or "").strip()
     url = (doc.get("url") or "").lower()
     tl = title.lower()
     if "b.tech cse (ai)" in tl or "cse_ai" in url:
-        return True, "B.Tech", "CSE (AI)"
+        return True, "B.Tech", "CSE (AI)", "2023-27"
     if "b.tech cse" in tl or "btech-cse" in url:
-        return True, "B.Tech", "CSE"
-    if "bba fintech" in tl:
-        return True, "BBA", "BBA FinTech"
-    if "bba kpmg" in tl:
-        return True, "BBA", "BBA KPMG"
+        return True, "B.Tech", "CSE", "2023-27"
+    if "bba fintech" in tl or "administration-fintech" in url:
+        return True, "BBA", "BBA FinTech", "current"
+    if "bba kpmg" in tl or "administration-kpmg" in url:
+        return True, "BBA", "BBA KPMG", "current"
+    if "handbook-bba-2021-24" in url or "bba curriculum handbook 2021-24" in tl:
+        return True, "BBA", "BBA", "2021-24"
+    if "bba curriculum" in tl or url.endswith("/programme/bachelor-of-business-administration"):
+        return True, "BBA", "BBA", "current"
+    if "b.des product design curriculum" in tl or "bdes-product-design" in url:
+        return True, "B.Des", "B.Des Product Design", "current"
+    if "b.des interaction design syllabus handbook 2021-25" in tl or "b.des-interaction" in url:
+        return True, "B.Des", "B.Des Interaction Design", "2021-25"
+    if "b.des interaction design curriculum" in tl or "bdes-interaction-design" in url:
+        return True, "B.Des", "B.Des Interaction Design", "current"
+    if "b.des interdisciplinary design syllabus handbook 2021-25" in tl or "b.des-interdisciplinary" in url:
+        return True, "B.Des", "B.Des Interdisciplinary Design", "2021-25"
+    if "b.des interdisciplinary design curriculum" in tl or "bdes-interdisciplinary-design" in url:
+        return True, "B.Des", "B.Des Interdisciplinary Design", "current"
+    if "b.des integrated communication design curriculum" in tl or "bdes-integrated-communication-design" in url:
+        return True, "B.Des", "B.Des Integrated Communication Design", "current"
     if "phd coursework" in tl or "phd-coursework" in url:
-        return True, "PhD", "PhD"
-    return False, None, None
+        return True, "PhD", "PhD", "2024-25"
+    return False, None, None, None
 
 
 def _parse_sem_number(text: str) -> int | None:
@@ -67,9 +87,22 @@ def _extract_courses_from_text(text: str) -> list[dict]:
                     seen.add(key)
                     courses.append({"code": code, "title": title, "credits": credits})
             continue
-        # BBA style: "Semester 1 ... Introduction to Fintech 4 CC Financial Accounting 4"
-        if "semester" not in line.lower() and " | " not in line:
+        mb = _BBA_HTML_ROW_RX.search(line)
+        if mb:
+            ctype, title, credits = mb.group(1).strip(), mb.group(2).strip(), mb.group(3).strip()
+            key = (ctype, title.lower())
+            if key not in seen:
+                seen.add(key)
+                courses.append({"code": ctype, "title": title, "credits": credits})
             continue
+        md = _BDES_HTML_ROW_RX.match(line)
+        if md:
+            title, credits = md.group(1).strip(), md.group(2).strip()
+            if title.lower() != "total":
+                key = ("-", title.lower())
+                if key not in seen:
+                    seen.add(key)
+                    courses.append({"code": "-", "title": title, "credits": credits})
     return courses
 
 
@@ -114,7 +147,8 @@ def chunk_document(doc: dict) -> list[dict]:
     units = _units(doc)
     if not units:
         return []
-    is_curr, prog, dept = _infer_curriculum_meta(doc)
+    is_curr, prog, dept, batch = _infer_curriculum_meta(doc)
+    is_html_curr = is_curr and doc.get("source_type") == "html"
     target, overlap = C.CHUNK_WORDS, C.CHUNK_OVERLAP_WORDS
     chunks: list[list[tuple[str, int | None, str]]] = []
     cur: list[tuple[str, int | None, str]] = []
@@ -127,7 +161,13 @@ def chunk_document(doc: dict) -> list[dict]:
             chunks.append(cur)
             cur, cur_words = [], 0
             has_new = False
-        elif cur and cur_words + w > target:
+        elif is_html_curr and cur and _TOTAL_ROW_RX.match(u[0]):
+            cur.append(u)
+            chunks.append(cur)
+            cur, cur_words = [], 0
+            has_new = False
+            continue
+        elif cur and cur_words + w > target and not (is_html_curr and cur and (_BBA_HTML_ROW_RX.search(u[0]) or _BDES_HTML_ROW_RX.match(u[0]))):
             chunks.append(cur)
             # carry the tail of the previous chunk as overlap (at least one unit kept out)
             tail: list[tuple[str, int | None, str]] = []
@@ -155,17 +195,21 @@ def chunk_document(doc: dict) -> list[dict]:
     n_chunks = len(chunks)
     out: list[dict] = []
     active_sem: int | None = None
+    html_sem = 1
     for i, group in enumerate(chunks):
         text = "\n".join(t for t, _, _ in group).strip()
         if len(text.split()) < min(C.MIN_CHUNK_WORDS, 6) and n_chunks > 1:
             continue
         pages = [p for _, p, _ in group if p is not None]
         sec = next((h for _, _, h in group if h), "")
+        courses = _extract_courses_from_text(text) if is_curr else []
         if is_curr:
             sem_here = _parse_sem_number(text)
             if sem_here is not None:
                 active_sem = sem_here
-        courses = _extract_courses_from_text(text) if is_curr else []
+            elif is_html_curr and courses and html_sem <= 8:
+                active_sem = html_sem
+                html_sem += 1
         chunk_row = {
             "chunk_id": f"{doc['doc_id']}-{i:04d}",
             "doc_id": doc["doc_id"],
@@ -190,6 +234,7 @@ def chunk_document(doc: dict) -> list[dict]:
         if is_curr:
             chunk_row["programme"] = prog
             chunk_row["department"] = dept
+            chunk_row["batch"] = batch
             chunk_row["semester"] = active_sem
             chunk_row["year"] = ((active_sem + 1) // 2) if active_sem else None
             if courses:
